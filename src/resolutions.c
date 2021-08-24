@@ -314,6 +314,16 @@ TchTranslateToDisplayCoordinates(
     {
         X -= Props->TouchPillarBoxWidthLeft;
     }
+
+    if (X >= Props->TouchPhysicalWidth - Props->TouchPillarBoxWidthRight)
+    {
+        X = Props->TouchPhysicalWidth;
+    }
+    else
+    {
+        X += Props->TouchPillarBoxWidthRight;
+    }
+
     if (Y <= Props->TouchLetterBoxHeightTop)
     {
         Y = 0;
@@ -321,6 +331,15 @@ TchTranslateToDisplayCoordinates(
     else
     {
         Y -= Props->TouchLetterBoxHeightTop;
+    }
+
+    if (Y >= Props->TouchPhysicalHeight - Props->TouchLetterBoxHeightBottom)
+    {
+        Y = Props->TouchPhysicalHeight;
+    }
+    else
+    {
+        Y += Props->TouchLetterBoxHeightBottom;
     }
 
     //
@@ -343,6 +362,16 @@ TchTranslateToDisplayCoordinates(
     {
         X -= Props->DisplayPillarBoxWidthLeft;
     }
+
+    if (X >= Props->DisplayPhysicalWidth - Props->DisplayPillarBoxWidthRight)
+    {
+        X = Props->DisplayPhysicalWidth;
+    }
+    else
+    {
+        X += Props->DisplayPillarBoxWidthRight;
+    }
+
     if (Y <= Props->DisplayLetterBoxHeightTop)
     {
         Y = 0;
@@ -350,6 +379,15 @@ TchTranslateToDisplayCoordinates(
     else
     {
         Y -= Props->DisplayLetterBoxHeightTop;
+    }
+
+    if (Y >= Props->DisplayPhysicalHeight - Props->DisplayLetterBoxHeightBottom)
+    {
+        Y = Props->DisplayPhysicalHeight;
+    }
+    else
+    {
+        Y += Props->DisplayLetterBoxHeightBottom;
     }
 
     Trace(

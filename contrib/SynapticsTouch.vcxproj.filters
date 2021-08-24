@@ -45,12 +45,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\bitops.c">
-      <Filter>Source Files\Cross Platform Shim</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hweight.c">
-      <Filter>Source Files\Cross Platform Shim</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\device.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -92,6 +86,21 @@
     </ClCompile>
     <ClCompile Include="..\src\rmi4\f12\function12.c">
       <Filter>Source Files\rmi4\f12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Cross Platform Shim\bitops.c">
+      <Filter>Source Files\Cross Platform Shim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Cross Platform Shim\hweight.c">
+      <Filter>Source Files\Cross Platform Shim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\enoselftest.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\selftest.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rmi4\f1a\function1a.c">
+      <Filter>Source Files\rmi4\f1a</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -138,15 +147,6 @@
     <ClInclude Include="..\include\trace.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bitops.h">
-      <Filter>Header Files\Cross Platform Shim</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\compat.h">
-      <Filter>Header Files\Cross Platform Shim</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\hweight.h">
-      <Filter>Header Files\Cross Platform Shim</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\HidCommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -161,6 +161,24 @@
     </ClInclude>
     <ClInclude Include="..\include\rmi4\f12\function12.h">
       <Filter>Header Files\rmi4\f12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Cross Platform Shim\compat.h">
+      <Filter>Header Files\Cross Platform Shim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Cross Platform Shim\bitops.h">
+      <Filter>Header Files\Cross Platform Shim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Cross Platform Shim\hweight.h">
+      <Filter>Header Files\Cross Platform Shim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rmi4\f1a\function1a.h">
+      <Filter>Header Files\rmi4\f1a</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\selftest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\enoselftest.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

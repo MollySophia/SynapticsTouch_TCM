@@ -93,16 +93,16 @@ TchReadReport(
 		/* Size is hard-coded at this moment */ \
 		/* This hard-coded size is designed for Lumia 950 XL */ \
 		USAGE_PAGE, 0x01, /* Usage Page: Generic Desktop */ \
-		LOGICAL_MAXIMUM_2, 0xA0, 0x05, /* Logical Maximum: 1440 (See defintion) */ \
+		LOGICAL_MAXIMUM_2, 0xFE, 0xFE, /* Logical Maximum: 1440 (See defintion) */ \
 		REPORT_SIZE, 0x10, /* Report Size: 0x10 (2 bytes) */ \
-		UNIT_EXPONENT, 0x0e, /* Unit exponent: -2 */ \
+		UNIT_EXPONENT, 0x0d, /* Unit Exponent: -3 */ \
 		UNIT, 0x11, /* Unit: SI Length (cm) */ \
 		USAGE, 0x30, /* Usage: X */ \
-		PHYSICAL_MAXIMUM_2, 0xce, 0x02, /* Physical Maximum: 7.18 */ \
+		PHYSICAL_MAXIMUM_2, 0xFE, 0xFE, /* Physical Maximum: 7.056 */ \
 		REPORT_COUNT, 0x01, /* Report count: 1 */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
-		PHYSICAL_MAXIMUM_2, 0xeb, 0x04, /* Physical Maximum: 12.59 */ \
-		LOGICAL_MAXIMUM_2, 0x00, 0x0a, /* Logical Maximum: 2560 (See definition) */ \
+		PHYSICAL_MAXIMUM_2, 0xFD, 0xFD, /* Physical Maximum: 12.544 */ \
+		LOGICAL_MAXIMUM_2, 0xFD, 0xFD, /* Logical Maximum: 2560 (See definition) */ \
 		USAGE, 0x31, /* Usage: Y */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
 		PHYSICAL_MAXIMUM, 0x00, /* Physical Maximum: 0 */ \
@@ -132,16 +132,16 @@ TchReadReport(
 		/* Begin of 4 bytes */ \
 		/* This hard-coded size is designed for Lumia 950 XL */ \
 		USAGE_PAGE, 0x01, /* Usage Page: Generic Desktop */ \
-		LOGICAL_MAXIMUM_2, 0xA0, 0x05, /* Logical Maximum: 1440 (See defintion) */ \
+		LOGICAL_MAXIMUM_2, 0xFE, 0xFE, /* Logical Maximum: 1440 (See defintion) */ \
 		REPORT_SIZE, 0x10, /* Report Size: 0x10 (2 bytes) */ \
-		UNIT_EXPONENT, 0x0e, /* Unit exponent: -2 */ \
+		UNIT_EXPONENT, 0x0d, /* Unit Exponent: -3 */ \
 		UNIT, 0x11, /* Unit: SI Length (cm) */ \
 		USAGE, 0x30, /* Usage: X */ \
-		PHYSICAL_MAXIMUM_2, 0xce, 0x02, /* Physical Maximum: 7.18 */ \
+		PHYSICAL_MAXIMUM_2, 0xFE, 0xFE, /* Physical Maximum: 7.056 */ \
 		REPORT_COUNT, 0x01, /* Report count: 1 */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
-		PHYSICAL_MAXIMUM_2, 0xeb, 0x04, /* Physical Maximum: 12.59 */ \
-		LOGICAL_MAXIMUM_2, 0x00, 0x0a, /* Logical Maximum: 2560 (See definition) */ \
+		PHYSICAL_MAXIMUM_2, 0xFD, 0xFD, /* Physical Maximum: 12.544 */ \
+		LOGICAL_MAXIMUM_2, 0xFD, 0xFD, /* Logical Maximum: 2560 (See definition) */ \
 		USAGE, 0x31, /* Usage: Y */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
 		/* End of 4 bytes */ \
@@ -281,16 +281,16 @@ TchReadReport(
 		/* Size is hard-coded at this moment */ \
 		/* This hard-coded size is designed for Lumia 950 XL */ \
 		USAGE_PAGE, 0x01, /* Usage Page: Generic Desktop */ \
-		LOGICAL_MAXIMUM_2, 0xA0, 0x05, /* Logical Maximum: 1440 (See defintion) */ \
+		LOGICAL_MAXIMUM_2, 0xFE, 0xFE, /* Logical Maximum: 1440 (See defintion) */ \
 		REPORT_SIZE, 0x10, /* Report Size: 0x10 (2 bytes) */ \
-		UNIT_EXPONENT, 0x0e, /* Unit exponent: -2 */ \
+		UNIT_EXPONENT, 0x0d, /* Unit exponent: -3 */ \
 		UNIT, 0x11, /* Unit: SI Length (cm) */ \
 		USAGE, 0x30, /* Usage: X */ \
-		PHYSICAL_MAXIMUM_2, 0xce, 0x02, /* Physical Maximum: 7.18 */ \
+		PHYSICAL_MAXIMUM_2, 0xFE, 0xFE, /* Physical Maximum: 7.056 */ \
 		REPORT_COUNT, 0x01, /* Report count: 1 */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
-		PHYSICAL_MAXIMUM_2, 0xeb, 0x04, /* Physical Maximum: 12.59 */ \
-		LOGICAL_MAXIMUM_2, 0x00, 0x0a, /* Logical Maximum: 2560 (See definition) */ \
+		PHYSICAL_MAXIMUM_2, 0xFD, 0xFD, /* Physical Maximum: 12.544 */ \
+		LOGICAL_MAXIMUM_2, 0xFD, 0xFD, /* Logical Maximum: 2560 (See definition) */ \
 		USAGE, 0x31, /* Usage: Y */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
 		PHYSICAL_MAXIMUM, 0x00, /* Physical Maximum: 0 */ \
@@ -378,15 +378,15 @@ TchReadReport(
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
 		USAGE_PAGE, 0x01, /* Usage Page (Generic Desktop Ctrls) */ \
 		USAGE, 0x30, /* Usage (X) */ \
-		LOGICAL_MAXIMUM_2, 0xA0, 0x05, /* Logical Maximum (1440) */ \
-		PHYSICAL_MAXIMUM_2, 0xCE, 0x02, /* Physical Maximum (7.18) */ \
+		LOGICAL_MAXIMUM_2, 0xFE, 0xFE, /* Logical Maximum (1440) */ \
+		PHYSICAL_MAXIMUM_2, 0xFE, 0xFE, /* Physical Maximum: 7.056 */ \
 		UNIT, 0x11, /* Unit (System: SI Linear, Length: Centimeter) */ \
-		UNIT_EXPONENT, 0x0E, /* Unit Exponent (-2) */ \
+		UNIT_EXPONENT, 0x0d, /* Unit Exponent: -3 */ \
 		REPORT_SIZE, 0x10, /* Report Size (16) */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
 		USAGE, 0x31, /* Usage (Y) */ \
-		LOGICAL_MAXIMUM_2, 0x00, 0x0A, /* Logical Maximum (2560) */ \
-		PHYSICAL_MAXIMUM_2, 0xEB, 0x04, /* Physical Maximum (12.59) */ \
+		LOGICAL_MAXIMUM_2, 0xFD, 0xFD, /* Logical Maximum (2560) */ \
+		PHYSICAL_MAXIMUM_2, 0xFD, 0xFD, /* Physical Maximum: 12.544 */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
 		PHYSICAL_MAXIMUM, 0x00, /* Physical Maximum: 0 */ \
 		UNIT_EXPONENT, 0x00, /* Unit exponent: 0 */ \
@@ -410,21 +410,21 @@ TchReadReport(
 		REPORT_COUNT, 0x05, /* Report Count (5) */ \
 		INPUT, 0x03, /* Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position) */ \
 		USAGE, 0x51, /* Usage (Contract Identifier) */ \
-		PHYSICAL_MAXIMUM_2, 0xEB, 0x04, /* Physical Maximum (12.59) */ \
+		PHYSICAL_MAXIMUM_2, 0xFD, 0xFD, /* Physical Maximum: 12.544 */ \
 		UNIT, 0x11, /* Unit (System: SI Linear, Length: Centimeter) */ \
-		UNIT_EXPONENT, 0x0E, /* Unit Exponent (-2) */ \
+		UNIT_EXPONENT, 0x0d, /* Unit Exponent: -3 */ \
 		REPORT_SIZE, 0x08, /* Report Size (8) */ \
 		REPORT_COUNT, 0x01, /* Report Count (1) */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
 		USAGE_PAGE, 0x01, /* Usage Page (Generic Desktop Ctrls) */ \
 		USAGE, 0x30, /* Usage (X) */ \
-		LOGICAL_MAXIMUM_2, 0xA0, 0x05, /* Logical Maximum (1440) */ \
-		PHYSICAL_MAXIMUM_2, 0xCE, 0x02, /* Physical Maximum (7.18) */ \
+		LOGICAL_MAXIMUM_2, 0xFE, 0xFE, /* Logical Maximum (1440) */ \
+		PHYSICAL_MAXIMUM_2, 0xFE, 0xFE, /* Physical Maximum: 7.056 */ \
 		REPORT_SIZE, 0x10, /* Report Size (16) */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
 		USAGE, 0x31, /* Usage (Y) */ \
-		LOGICAL_MAXIMUM_2, 0x00, 0x0A, /* Logical Maximum (2560) */ \
-		PHYSICAL_MAXIMUM_2, 0xEB, 0x04, /* Physical Maximum (12.59) */ \
+		LOGICAL_MAXIMUM_2, 0xFD, 0xFD, /* Logical Maximum (2560) */ \
+		PHYSICAL_MAXIMUM_2, 0xFD, 0xFD, /* Physical Maximum: 12.544 */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
 		PHYSICAL_MAXIMUM, 0x00, /* Physical Maximum: 0 */ \
 		UNIT_EXPONENT, 0x00, /* Unit exponent: 0 */ \
@@ -456,16 +456,16 @@ TchReadReport(
 		INPUT, 0x03, /* Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position) */ \
 		USAGE_PAGE, 0x01, /* Usage Page (Generic Desktop Ctrls) */ \
 		USAGE, 0x30, /* Usage (X) */ \
-		LOGICAL_MAXIMUM_2, 0xA0, 0x05, /* Logical Maximum (1440) */ \
-		PHYSICAL_MAXIMUM_2, 0xCE, 0x02, /* Physical Maximum (7.18) */ \
+		LOGICAL_MAXIMUM_2, 0xFE, 0xFE, /* Logical Maximum (1440) */ \
+		PHYSICAL_MAXIMUM_2, 0xFE, 0xFE, /* Physical Maximum: 7.056 */ \
 		UNIT, 0x11, /* Unit (System: SI Linear, Length: Centimeter) */ \
-		UNIT_EXPONENT, 0x0E, /* Unit Exponent (-2) */ \
+		UNIT_EXPONENT, 0x0d, /* Unit Exponent: -3 */ \
 		REPORT_SIZE, 0x10, /* Report Size (16) */ \
 		REPORT_COUNT, 0x01, /* Report Count (1) */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
 		USAGE, 0x31, /* Usage (Y) */ \
-		LOGICAL_MAXIMUM_2, 0x00, 0x0A, /* Logical Maximum (2560) */ \
-		PHYSICAL_MAXIMUM_2, 0xEB, 0x04, /* Physical Maximum (12.59) */ \
+		LOGICAL_MAXIMUM_2, 0xFD, 0xFD, /* Logical Maximum (2560) */ \
+		PHYSICAL_MAXIMUM_2, 0xFD, 0xFD, /* Physical Maximum: 12.544 */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
 		USAGE_PAGE, 0x0D, /* Usage Page (Digitizer) */ \
 		USAGE, 0x30, /* Usage (Tip Pressure) */ \
@@ -503,15 +503,15 @@ TchReadReport(
 		LOGICAL_MAXIMUM_2, 0x10, 0x0e, /* LOGICAL_MAXIMUM (3600) */ \
 		INPUT, 0x06, /* INPUT (Data,Var,Rel) */ \
 		USAGE, 0x30, /* Usage (X) */ \
-		LOGICAL_MAXIMUM_2, 0xA0, 0x05, /* Logical Maximum (1440) */ \
-		PHYSICAL_MAXIMUM_2, 0xCE, 0x02, /* Physical Maximum (7.18) */ \
+		LOGICAL_MAXIMUM_2, 0xFE, 0xFE, /* Logical Maximum (1440) */ \
+		PHYSICAL_MAXIMUM_2, 0xFE, 0xFE, /* Physical Maximum: 7.056 */ \
 		UNIT, 0x11, /* Unit (System: SI Linear, Length: Centimeter) */ \
-		UNIT_EXPONENT, 0x0E, /* Unit Exponent (-2) */ \
+		UNIT_EXPONENT, 0x0d, /* Unit Exponent: -3 */ \
 		REPORT_SIZE, 0x10, /* Report Size (16) */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
 		USAGE, 0x31, /* Usage (Y) */ \
-		LOGICAL_MAXIMUM_2, 0x00, 0x0A, /* Logical Maximum (2560) */ \
-		PHYSICAL_MAXIMUM_2, 0xEB, 0x04, /* Physical Maximum (12.59) */ \
+		LOGICAL_MAXIMUM_2, 0xFD, 0xFD, /* Logical Maximum (2560) */ \
+		PHYSICAL_MAXIMUM_2, 0xFD, 0xFD, /* Physical Maximum: 12.544 */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
 		USAGE_PAGE, 0x0d, /* USAGE_PAGE (Digitizers) */ \
 		USAGE, 0x48, /* USAGE (Width) */ \
@@ -635,9 +635,9 @@ TchReadReport(
 			LOGICAL_MINIMUM, 0x00, /* Logical Minimum (0) */ \
 			LOGICAL_MAXIMUM, 0x0A, /* Logical Maximum (10) */ \
 			PHYSICAL_MINIMUM, 0x00, /* Physical Minimum (0) */ \
-			PHYSICAL_MAXIMUM_2, 0xEB, 0x04, /* Physical Maximum (12.59) */ \
+			PHYSICAL_MAXIMUM_2, 0xFD, 0xFD, /* Physical Maximum: 12.544 */ \
 			UNIT, 0x11, /* Unit (System: SI Linear, Length: Centimeter) */ \
-			UNIT_EXPONENT, 0x0E, /* Unit Exponent (-2) */ \
+			UNIT_EXPONENT, 0x0d, /* Unit Exponent: -3 */ \
 			REPORT_SIZE, 0x08, /* Report Size (8) */ \
 			REPORT_COUNT, 0x01, /* Report Count (1) */ \
 			FEATURE, 0x02, /* Feature: (Data, Var, Abs) */ \

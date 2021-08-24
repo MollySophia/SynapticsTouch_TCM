@@ -1,6 +1,7 @@
 /*++
     Copyright (c) Microsoft Corporation. All Rights Reserved.
     Copyright (c) Bingxing Wang. All Rights Reserved.
+    Copyright (c) Roman Masanin. All Rights Reserved.
     Copyright (c) LumiaWoA authors. All Rights Reserved.
 
     Module Name:
@@ -220,6 +221,142 @@ Return Value:
 }
 
 NTSTATUS
+TchGenerateHidReportDescriptor(
+    IN WDFDEVICE Device,
+    IN WDFMEMORY Memory
+)
+{
+    PDEVICE_EXTENSION devContext;
+    RMI4_CONTROLLER_CONTEXT* touchContext;
+    NTSTATUS status;
+
+    devContext = GetDeviceContext(Device);
+
+    touchContext = (RMI4_CONTROLLER_CONTEXT*)devContext->TouchContext;
+
+    PUCHAR hidReportDescBuffer = (PUCHAR)ExAllocatePoolWithTag(
+        NonPagedPool,
+        gdwcbReportDescriptor,
+        TOUCH_POOL_TAG
+    );
+
+    if (hidReportDescBuffer == NULL)
+    {
+        Trace(
+            TRACE_LEVEL_INFORMATION,
+            TRACE_HID,
+            "Failed to create hidReportDescBuffer on %p",
+            hidReportDescBuffer);
+
+        return STATUS_FATAL_MEMORY_EXHAUSTION;
+    }
+
+    Trace(
+        TRACE_LEVEL_INFORMATION,
+        TRACE_HID,
+        "Created hidReportDescBuffer on %p",
+        hidReportDescBuffer);
+
+    RtlCopyBytes(
+        hidReportDescBuffer,
+        gReportDescriptor,
+        gdwcbReportDescriptor
+    );
+
+    for (unsigned int i = 0; i < gdwcbReportDescriptor - 2; i++)
+    {
+        if (*(hidReportDescBuffer + i) == LOGICAL_MAXIMUM_2)
+        {
+            if (*(hidReportDescBuffer + i + 1) == 0xFE &&
+                *(hidReportDescBuffer + i + 2) == 0xFE)
+            {
+                *(hidReportDescBuffer + i + 1) = touchContext->Props.DisplayPhysicalWidth & 0xFF;
+                *(hidReportDescBuffer + i + 2) = (touchContext->Props.DisplayPhysicalWidth >> 8) & 0xFF;
+
+                Trace(
+                    TRACE_LEVEL_INFORMATION,
+                    TRACE_HID,
+                    "Set X=%u in %p",
+                    touchContext->Props.DisplayPhysicalWidth,
+                    hidReportDescBuffer + i);
+            }
+            if (*(hidReportDescBuffer + i + 1) == 0xFD &&
+                *(hidReportDescBuffer + i + 2) == 0xFD)
+            {
+                *(hidReportDescBuffer + i + 1) = touchContext->Props.DisplayPhysicalHeight & 0xFF;
+                *(hidReportDescBuffer + i + 2) = (touchContext->Props.DisplayPhysicalHeight >> 8) & 0xFF;
+
+                Trace(
+                    TRACE_LEVEL_INFORMATION,
+                    TRACE_HID,
+                    "Set Y=%u in %p",
+                    touchContext->Props.DisplayPhysicalHeight,
+                    hidReportDescBuffer + i);
+            }
+        }
+        else if (*(hidReportDescBuffer + i) == PHYSICAL_MAXIMUM_2)
+        {
+            if (*(hidReportDescBuffer + i + 1) == 0xFE &&
+                *(hidReportDescBuffer + i + 2) == 0xFE)
+            {
+                *(hidReportDescBuffer + i + 1) = touchContext->Props.DisplayWidth10um & 0xFF;
+                *(hidReportDescBuffer + i + 2) = (touchContext->Props.DisplayWidth10um >> 8) & 0xFF;
+
+                Trace(
+                    TRACE_LEVEL_INFORMATION,
+                    TRACE_HID,
+                    "Set X=%u in %p",
+                    touchContext->Props.DisplayWidth10um,
+                    hidReportDescBuffer + i);
+            }
+            if (*(hidReportDescBuffer + i + 1) == 0xFD &&
+                *(hidReportDescBuffer + i + 2) == 0xFD)
+            {
+                *(hidReportDescBuffer + i + 1) = touchContext->Props.DisplayHeight10um & 0xFF;
+                *(hidReportDescBuffer + i + 2) = (touchContext->Props.DisplayHeight10um >> 8) & 0xFF;
+
+                Trace(
+                    TRACE_LEVEL_INFORMATION,
+                    TRACE_HID,
+                    "Set Y=%u in %p",
+                    touchContext->Props.DisplayHeight10um,
+                    hidReportDescBuffer + i);
+            }
+        }
+    }
+
+    Trace(
+        TRACE_LEVEL_INFORMATION,
+        TRACE_HID,
+        "Set X=%u and Y=%u in hidReportDescriptor",
+        touchContext->Props.DisplayPhysicalWidth,
+        touchContext->Props.DisplayPhysicalHeight);
+
+    //
+    // Use hardcoded Report descriptor
+    //
+    status = WdfMemoryCopyFromBuffer(
+        Memory,
+        0,
+        (PVOID)hidReportDescBuffer,
+        gdwcbReportDescriptor);
+
+    if (!NT_SUCCESS(status))
+    {
+        Trace(
+            TRACE_LEVEL_ERROR,
+            TRACE_HID,
+            "Error copying HID report descriptor to request memory - STATUS:%X",
+            status);
+        goto exit;
+    }
+
+exit:
+    ExFreePoolWithTag((PVOID)hidReportDescBuffer, TOUCH_POOL_TAG);
+    return status;
+}
+
+NTSTATUS
 TchGetHidDescriptor(
     IN WDFDEVICE Device,
     IN WDFREQUEST Request
@@ -247,7 +384,7 @@ Return Value:
     NTSTATUS status;
 
     UNREFERENCED_PARAMETER(Device);
-    
+
     //
     // This IOCTL is METHOD_NEITHER so WdfRequestRetrieveOutputMemory
     // will correctly retrieve buffer from Irp->UserBuffer. 
@@ -328,8 +465,6 @@ Return Value:
     WDFMEMORY memory;
     NTSTATUS status;
 
-    UNREFERENCED_PARAMETER(Device);
-    
     //
     // This IOCTL is METHOD_NEITHER so WdfRequestRetrieveOutputMemory
     // will correctly retrieve buffer from Irp->UserBuffer. 
@@ -354,11 +489,10 @@ Return Value:
     //
     // Use hardcoded Report descriptor
     //
-    status = WdfMemoryCopyFromBuffer(
-        memory,
-        0,
-        (PUCHAR) gReportDescriptor,
-        gdwcbReportDescriptor);
+    status = TchGenerateHidReportDescriptor(
+        Device,
+        memory
+    );
 
     if (!NT_SUCCESS(status)) 
     {
