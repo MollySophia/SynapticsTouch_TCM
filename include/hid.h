@@ -539,7 +539,7 @@ TchReadReport(
 		REPORT_SIZE, 0x08, /* Report Size (8) */ \
 		REPORT_COUNT, 0xC7, /* Report Count (-57) */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
-		REPORT_ID, 0xF1, /* Report ID (-15) */ \
+		REPORT_ID, REPORTID_DIAGNOSTIC_FEATURE_1, /* Report ID (-15) */ \
 		USAGE, 0x31, /* Usage (0x31) */ \
 		REPORT_COUNT, 0x3E, /* Report Count (62) */ \
 		FEATURE, 0x02, /* Feature: (Data, Var, Abs) */ \
@@ -591,7 +591,7 @@ TchReadReport(
 		REPORT_SIZE, 0x08, /* Report Size (8) */ \
 		REPORT_COUNT_2, 0xD4, 0x07, /* Report Count (2004) */ \
 		INPUT, 0x02, /* Input: (Data, Var, Abs) */ \
-		REPORT_ID, 0xF6, /* Report ID (-10) */ \
+		REPORT_ID, REPORTID_DIAGNOSTIC_FEATURE_4, /* Report ID (-10) */ \
 		USAGE, 0x32, /* Usage (0x32) */ \
 		REPORT_COUNT, 0x03, /* Report Count (3) */ \
 		FEATURE, 0x02, /* Feature: (Data, Var, Abs) */ \

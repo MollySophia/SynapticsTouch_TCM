@@ -286,7 +286,7 @@ Return Value:
 	NT_ASSERT(PendingPens != NULL);
 	*PendingPens = FALSE;
 
-	//
+	/*//
 	// If no touches are unreported in our cache, read the next set of touches
 	// from hardware.
 	//
@@ -339,9 +339,37 @@ Return Value:
 	else
 	{
 		*PendingPens = FALSE;
-	}
+	}*/
 
-exit:
+	RtlZeroMemory(HidReport, sizeof(HID_PEN_REPORT));
+
+
+	USHORT SctatchX = (USHORT)data.ActivePenState.X;
+	USHORT ScratchY = (USHORT)data.ActivePenState.Y;
+
+	//
+	// Perform per-platform x/y adjustments to controller coordinates
+	//
+	TchTranslateToDisplayCoordinates(
+		&SctatchX,
+		&ScratchY,
+		&ControllerContext->Props);
+
+	HidReport->TipSwitch = FINGER_STATUS;
+	HidReport->BarrelSwitch = data.ActivePenState.Barrel;
+	HidReport->Invert = data.ActivePenState.Invert;
+	HidReport->Eraser = 0;
+	HidReport->InRange = data.ActivePenState.Pen;
+
+	HidReport->X = SctatchX;
+	HidReport->Y = ScratchY;
+
+	HidReport->TipPressure = (UCHAR)data.ActivePenState.Pressure;
+
+	HidReport->XTilt = 0;
+	HidReport->YTilt = 0;
+
+//exit:
 
 	return status;
 }

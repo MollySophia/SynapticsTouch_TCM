@@ -169,7 +169,7 @@ TchPowerSettingCallback(
 
             if (NT_SUCCESS(RtlReadRegistryValue(
                 (PCWSTR)L"\\Registry\\Machine\\SOFTWARE\\OEM\\Nokia\\Touch\\WakeupGesture",
-                (PCWSTR)L"DoubleTapToWake",
+                (PCWSTR)L"Enabled",
                 REG_DWORD,
                 &GestureEnabled,
                 sizeof(DWORD))) && GestureEnabled == 1)

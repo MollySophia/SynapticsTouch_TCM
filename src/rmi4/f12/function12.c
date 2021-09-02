@@ -2063,7 +2063,8 @@ RmiConfigureF12(
 			TRACE_INIT,
 			"Failed to configure $12 Control Registers - 0x%08lX",
 			status);
-		goto exit;
+		//goto exit;
+		status = STATUS_SUCCESS;
 	}
 
 	status = RmiQueryDataRegistersF12(
@@ -2078,7 +2079,8 @@ RmiConfigureF12(
 			TRACE_INIT,
 			"Failed to query $12 Data Registers - 0x%08lX",
 			status);
-		goto exit;
+		//goto exit;
+		status = STATUS_SUCCESS;
 	}
 
 	// Skip rmi_f12_read_sensor_tuning for the prototype.
@@ -2127,7 +2129,13 @@ RmiConfigureF12(
 	if (item) data_offset += (USHORT)item->RegisterSize;
 
 	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 6);
-	if (item) data_offset += (USHORT)item->RegisterSize;
+	if (item != NULL)
+	{
+		ControllerContext->Data6Offset = data_offset;
+		ControllerContext->Data6Size = (USHORT)item->RegisterSize;
+
+		data_offset += (USHORT)item->RegisterSize;
+	}
 
 	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 7);
 	if (item) data_offset += (USHORT)item->RegisterSize;
@@ -2418,6 +2426,125 @@ free_buffer:
 		controllerData,
 		TOUCH_POOL_TAG_F12
 	);
+
+	if (controller->Data6Size == sizeof(RMI4_F12_16BIT_PRESSURE_STYLUS_DATA_REGISTER))
+	{
+		PRMI4_F12_16BIT_PRESSURE_STYLUS_DATA_REGISTER controllerPenData = NULL;
+
+		controllerPenData = ExAllocatePoolWithTag(
+			NonPagedPoolNx,
+			controller->Data6Size,
+			TOUCH_POOL_TAG_F12
+		);
+
+		if (controllerPenData == NULL)
+		{
+			status = STATUS_INSUFFICIENT_RESOURCES;
+			goto exit;
+		}
+
+		// 
+		// Packets we need is determined by context
+		//
+		status = SpbReadDataSynchronously(
+			SpbContext,
+			controller->Descriptors[index].DataBase + (BYTE)controller->Data6Offset,
+			controllerPenData,
+			controller->Data6Size
+		);
+
+		if (!NT_SUCCESS(status))
+		{
+			Trace(
+				TRACE_LEVEL_ERROR,
+				TRACE_INTERRUPT,
+				"Error reading pen status data - 0x%08lX",
+				status);
+
+			status = STATUS_SUCCESS;
+
+			ExFreePoolWithTag(
+				controllerPenData,
+				TOUCH_POOL_TAG_F12
+			);
+
+			goto exit;
+		}
+
+		// Translate structure
+		Data->ActivePenState.Pen = controllerPenData->Pen;
+		Data->ActivePenState.Invert = controllerPenData->Invert;
+		Data->ActivePenState.Barrel = controllerPenData->Barrel;
+		Data->ActivePenState.X = (controllerPenData->X_MSB << 8) | controllerPenData->X_LSB;
+		Data->ActivePenState.Y = (controllerPenData->Y_MSB << 8) | controllerPenData->Y_LSB;
+		Data->ActivePenState.Pressure = (controllerPenData->Pressure_MSB << 8) | controllerPenData->Pressure_LSB;
+		Data->ActivePenState.Battery = controllerPenData->Battery;
+		Data->ActivePenState.PenId = (controllerPenData->PenId[3] << 24) | (controllerPenData->PenId[2] << 16) | (controllerPenData->PenId[1] << 8) | controllerPenData->PenId[0];
+
+		ExFreePoolWithTag(
+			controllerPenData,
+			TOUCH_POOL_TAG_F12
+		);
+	}
+	else if (controller->Data6Size == sizeof(RMI4_F12_8BIT_PRESSURE_STYLUS_DATA_REGISTER))
+	{
+		PRMI4_F12_8BIT_PRESSURE_STYLUS_DATA_REGISTER controllerPenData = NULL;
+
+		controllerPenData = ExAllocatePoolWithTag(
+			NonPagedPoolNx,
+			controller->Data6Size,
+			TOUCH_POOL_TAG_F12
+		);
+
+		if (controllerPenData == NULL)
+		{
+			status = STATUS_INSUFFICIENT_RESOURCES;
+			goto exit;
+		}
+
+		// 
+		// Packets we need is determined by context
+		//
+		status = SpbReadDataSynchronously(
+			SpbContext,
+			controller->Descriptors[index].DataBase + (BYTE)controller->Data6Offset,
+			controllerPenData,
+			controller->Data6Size
+		);
+
+		if (!NT_SUCCESS(status))
+		{
+			Trace(
+				TRACE_LEVEL_ERROR,
+				TRACE_INTERRUPT,
+				"Error reading pen status data - 0x%08lX",
+				status);
+
+			status = STATUS_SUCCESS;
+
+			ExFreePoolWithTag(
+				controllerPenData,
+				TOUCH_POOL_TAG_F12
+			);
+
+			goto free_buffer;
+		}
+
+		// Translate structure
+		Data->ActivePenState.Pen = controllerPenData->Pen;
+		Data->ActivePenState.Invert = controllerPenData->Invert;
+		Data->ActivePenState.Barrel = controllerPenData->Barrel;
+		Data->ActivePenState.X = (controllerPenData->X_MSB << 8) | controllerPenData->X_LSB;
+		Data->ActivePenState.Y = (controllerPenData->Y_MSB << 8) | controllerPenData->Y_LSB;
+		Data->ActivePenState.Pressure = controllerPenData->Pressure;
+		Data->ActivePenState.Battery = controllerPenData->Battery;
+		Data->ActivePenState.PenId = (controllerPenData->PenId[3] << 24) | (controllerPenData->PenId[2] << 16) | (controllerPenData->PenId[1] << 8) | controllerPenData->PenId[0];
+
+		ExFreePoolWithTag(
+			controllerPenData,
+			TOUCH_POOL_TAG_F12
+		);
+	}
 
 exit:
 	return status;

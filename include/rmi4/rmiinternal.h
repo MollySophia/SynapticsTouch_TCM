@@ -206,12 +206,25 @@ typedef struct _RMI4_DETECTED_OBJECT_POSITION
 	int Y;
 } RMI4_DETECTED_OBJECT_POSITION;
 
+typedef struct _RMI4_DETECTED_PEN {
+	BYTE Pen : 1;
+	BYTE Invert : 1;
+	BYTE Barrel : 1;
+	BYTE Reserved : 5;
+	int X;
+	int Y;
+	int Pressure;
+	BYTE Battery;
+	DWORD PenId;
+} RMI4_DETECTED_PEN, * PRMI4_DETECTED_PEN;
+
 typedef struct _RMI4_DETECTED_OBJECTS
 {
 	BYTE FingerStates[RMI4_MAX_TOUCHES];
 	BYTE PenStates[RMI4_MAX_TOUCHES];
 	BYTE PuckStates[RMI4_MAX_TOUCHES];
 	RMI4_DETECTED_OBJECT_POSITION Positions[RMI4_MAX_TOUCHES];
+	RMI4_DETECTED_PEN ActivePenState;
 } RMI4_DETECTED_OBJECTS;
 
 typedef struct _RMI4_DETECTED_BUTTONS
@@ -388,6 +401,9 @@ typedef struct _RMI4_CONTROLLER_CONTEXT
 
 	USHORT Data4Offset;
 	USHORT Data4Size;
+
+	USHORT Data6Offset;
+	USHORT Data6Size;
 
 	USHORT Data13Offset;
 	USHORT Data13Size;
