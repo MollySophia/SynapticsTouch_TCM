@@ -102,6 +102,12 @@
     <ClCompile Include="..\src\enoselftest.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\rmi4\f12\activepen.c">
+      <Filter>Source Files\rmi4\f12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rmi4\f12\finger.c">
+      <Filter>Source Files\rmi4\f12</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\Resource.rc">
@@ -179,6 +185,12 @@
     </ClInclude>
     <ClInclude Include="..\include\Cross Platform Shim\hweight.h">
       <Filter>Header Files\Cross Platform Shim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rmi4\f12\activepen.h">
+      <Filter>Header Files\rmi4\f12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rmi4\f12\finger.h">
+      <Filter>Header Files\rmi4\f12</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
