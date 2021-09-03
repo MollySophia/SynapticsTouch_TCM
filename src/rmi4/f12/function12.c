@@ -9,6 +9,8 @@
 #include <rmi4\rmiinternal.h>
 #include <rmi4\f12\controlregisters.h>
 #include <rmi4\f12\function12.h>
+#include <rmi4\f12\activepen.h>
+#include <rmi4\f12\finger.h>
 #include <function12.tmh>
 
 NTSTATUS
@@ -926,8 +928,6 @@ RmiConfigureReportingF12(
 		goto exit;
 	}
 
-	ControllerContext->MaxFingers = ControlRegisterData.ReportedObjectCount;
-
 exit:
 	return status;
 }
@@ -1082,7 +1082,7 @@ RmiQueryDataRegistersF12(
 		Trace(
 			TRACE_LEVEL_ERROR,
 			TRACE_INIT,
-			"Failed to read the Query 5 Register - 0x%08lX",
+			"Failed to read the Query 8 Register - 0x%08lX",
 			status);
 		goto exit;
 	}
@@ -1118,7 +1118,7 @@ RmiQueryDataRegistersF12(
 			Trace(
 				TRACE_LEVEL_ERROR,
 				TRACE_INIT,
-				"Discovered $12 Control Register F12_2D_DATA%d at 0x%X with a size of %d",
+				"Discovered $12 Data Register F12_2D_DATA%d at 0x%X with a size of %d",
 				i,
 				ControllerContext->Descriptors[index].DataBase + indexData,
 				ControllerContext->DataRegDesc.Registers[indexData].RegisterSize
@@ -1917,8 +1917,6 @@ RmiConfigureF12(
 
 	BYTE queryF12Addr = 0;
 	char buf = 0;
-	USHORT data_offset = 0;
-	PRMI_REGISTER_DESC_ITEM item;
 
 	//
 	// Testing Code
@@ -2083,98 +2081,16 @@ RmiConfigureF12(
 		status = STATUS_SUCCESS;
 	}
 
-	// Skip rmi_f12_read_sensor_tuning for the prototype.
 
-	/*
-	* Figure out what data is contained in the data registers. HID devices
-	* may have registers defined, but their data is not reported in the
-	* HID attention report. Registers which are not reported in the HID
-	* attention report check to see if the device is receiving data from
-	* HID attention reports.
-	*/
-	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 0);
-	if (item) data_offset += (USHORT)item->RegisterSize;
+	USHORT FingerCount = RmiGetFingerCountFromControllerF12(ControllerContext);
 
-	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 1);
-	if (item != NULL)
-	{
-		ControllerContext->Data1Offset = data_offset;
-		ControllerContext->Data1Size = (USHORT)item->RegisterSize;
+	Trace(
+		TRACE_LEVEL_INFORMATION,
+		TRACE_INIT,
+		"Finger Count: %d",
+		FingerCount);
 
-		data_offset += (USHORT)item->RegisterSize;
-	}
-
-	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 2);
-	if (item != NULL)
-	{
-		ControllerContext->Data2Offset = data_offset;
-		ControllerContext->Data2Size = (USHORT)item->RegisterSize;
-
-		data_offset += (USHORT)item->RegisterSize;
-	}
-
-	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 3);
-	if (item) data_offset += (USHORT)item->RegisterSize;
-
-	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 4);
-	if (item != NULL)
-	{
-		ControllerContext->Data4Offset = data_offset;
-		ControllerContext->Data4Size = (USHORT)item->RegisterSize;
-
-		data_offset += (USHORT)item->RegisterSize;
-	}
-
-	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 5);
-	if (item) data_offset += (USHORT)item->RegisterSize;
-
-	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 6);
-	if (item != NULL)
-	{
-		ControllerContext->Data6Offset = data_offset;
-		ControllerContext->Data6Size = (USHORT)item->RegisterSize;
-
-		data_offset += (USHORT)item->RegisterSize;
-	}
-
-	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 7);
-	if (item) data_offset += (USHORT)item->RegisterSize;
-
-	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 8);
-	if (item) data_offset += (USHORT)item->RegisterSize;
-
-	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 9);
-	if (item) data_offset += (USHORT)item->RegisterSize;
-
-	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 10);
-	if (item) data_offset += (USHORT)item->RegisterSize;
-
-	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 11);
-	if (item) data_offset += (USHORT)item->RegisterSize;
-
-	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 12);
-	if (item) data_offset += (USHORT)item->RegisterSize;
-
-	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 13);
-	if (item != NULL)
-	{
-		ControllerContext->Data13Offset = data_offset;
-		ControllerContext->Data13Size = (USHORT)item->RegisterSize;
-
-		data_offset += (USHORT)item->RegisterSize;
-	}
-
-	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 14);
-	if (item) data_offset += (USHORT)item->RegisterSize;
-
-	item = RmiGetRegisterDescItem(&ControllerContext->DataRegDesc, 15);
-	if (item != NULL)
-	{
-		ControllerContext->Data15Offset = data_offset;
-		ControllerContext->Data15Size   = (USHORT)item->RegisterSize;
-
-		data_offset += (USHORT)item->RegisterSize;
-	}
+	ControllerContext->MaxFingers = (UCHAR)FingerCount;
 
 exit:
 	return status;
@@ -2208,342 +2124,37 @@ Return Value:
 --*/
 {
 	NTSTATUS status;
-	RMI4_CONTROLLER_CONTEXT* controller;
 
-	int index, i, x, y;
-
-	PRMI4_F12_FINGER_DATA_REGISTER controllerData = NULL;
-
-	controller = (RMI4_CONTROLLER_CONTEXT*)ControllerContext;
-
-	//
-	// Locate RMI data base address of 2D touch function
-	//
-	index = RmiGetFunctionIndex(
-		controller->Descriptors,
-		controller->FunctionCount,
-		RMI4_F12_2D_TOUCHPAD_SENSOR);
-
-	if (index == controller->FunctionCount)
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Unexpected - RMI Function 12 missing");
-
-		status = STATUS_INVALID_DEVICE_STATE;
-		goto exit;
-	}
-
-	status = RmiChangePage(
+	status = RmiGetFingerStatusFromControllerF12(
 		ControllerContext,
 		SpbContext,
-		controller->FunctionOnPage[index]);
+		Data
+		);
 
 	if (!NT_SUCCESS(status))
 	{
 		Trace(
 			TRACE_LEVEL_ERROR,
 			TRACE_INIT,
-			"Could not change register page");
+			"Could not get finger statuses from controller $12");
 
 		goto exit;
 	}
 
-	ULONG Size = (ULONG)((controller->MaxFingers + 2) * sizeof(RMI4_F12_FINGER_DATA_REGISTER)) + 1;
-
-	controllerData = ExAllocatePoolWithTag(
-		NonPagedPoolNx,
-		Size,
-		TOUCH_POOL_TAG_F12
-	);
-
-	if (controllerData == NULL)
-	{
-		status = STATUS_INSUFFICIENT_RESOURCES;
-		goto exit;
-	}
-
-	// 
-	// Packets we need is determined by context
-	//
-	status = SpbReadDataSynchronously(
+	status = RmiGetPenStatusFromControllerF12(
+		ControllerContext,
 		SpbContext,
-		controller->Descriptors[index].DataBase + (BYTE)controller->Data1Offset,
-		controllerData,
-		Size
+		Data
 	);
 
 	if (!NT_SUCCESS(status))
 	{
 		Trace(
 			TRACE_LEVEL_ERROR,
-			TRACE_INTERRUPT,
-			"Error reading finger status data - 0x%08lX",
-			status);
+			TRACE_INIT,
+			"Could not get pen statuses from controller $12");
 
-		goto free_buffer;
-	}
-
-	for (i = 0; i < controller->MaxFingers + 2; i++)
-	{
-		switch (controllerData[i].ObjectTypeAndStatus)
-		{
-		case RMI4_F12_OBJECT_FINGER:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_PRESENT_WITH_ACCURATE_POS;
-			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is finger",
-				i);
-
-			break;
-		case RMI4_F12_OBJECT_PALM:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_NOT_PRESENT;
-			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_PRESENT_WITH_ACCURATE_POS;
-
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is palm",
-				i);
-
-			break;
-		case RMI4_F12_OBJECT_HOVERING_FINGER:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_PRESENT_WITH_ACCURATE_POS;
-			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is hovering finger",
-				i);
-
-			break;
-		case RMI4_F12_OBJECT_GLOVED_FINGER:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_PRESENT_WITH_ACCURATE_POS;
-			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is gloved finger",
-				i);
-
-			break;
-		case RMI4_F12_OBJECT_ACTIVE_STYLUS:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_NOT_PRESENT;
-			Data->PenStates[i] = RMI4_PEN_STATE_PRESENT_WITH_TIP;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is active stylus",
-				i);
-
-			break;
-		case RMI4_F12_OBJECT_STYLUS:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_NOT_PRESENT;
-			Data->PenStates[i] = RMI4_PEN_STATE_PRESENT_WITH_TIP;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is stylus",
-				i);
-
-			break;
-		case RMI4_F12_OBJECT_ERASER:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_NOT_PRESENT;
-			Data->PenStates[i] = RMI4_PEN_STATE_PRESENT_WITH_ERASER;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is eraser",
-				i);
-
-			break;
-		case RMI4_F12_OBJECT_NONE:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_NOT_PRESENT;
-			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
-			Trace(
-				TRACE_LEVEL_VERBOSE,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is none",
-				i);
-
-			break;
-		default:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_NOT_PRESENT;
-			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is unknown: %d",
-				i,
-				controllerData[i].ObjectTypeAndStatus);
-
-			break;
-		}
-
-		x = (controllerData[i].X_MSB << 8) | controllerData[i].X_LSB;
-		y = (controllerData[i].Y_MSB << 8) | controllerData[i].Y_LSB;
-
-		Data->Positions[i].X = x;
-		Data->Positions[i].Y = y;
-
-		if (controllerData[i].ObjectTypeAndStatus != (BYTE)RMI4_F12_OBJECT_NONE)
-		{
-			Trace(
-				TRACE_LEVEL_VERBOSE,
-				TRACE_INTERRUPT,
-				"Finger[%d] X: %d, Y: %d, Z: %d, wX: %d, wY: %d",
-				i,
-				x,
-				y,
-				controllerData[i].Z,
-				controllerData[i].wX,
-				controllerData[i].wY);
-		}
-	}
-
-free_buffer:
-	ExFreePoolWithTag(
-		controllerData,
-		TOUCH_POOL_TAG_F12
-	);
-
-	if (controller->Data6Size == sizeof(RMI4_F12_16BIT_PRESSURE_STYLUS_DATA_REGISTER))
-	{
-		PRMI4_F12_16BIT_PRESSURE_STYLUS_DATA_REGISTER controllerPenData = NULL;
-
-		controllerPenData = ExAllocatePoolWithTag(
-			NonPagedPoolNx,
-			controller->Data6Size,
-			TOUCH_POOL_TAG_F12
-		);
-
-		if (controllerPenData == NULL)
-		{
-			status = STATUS_INSUFFICIENT_RESOURCES;
-			goto exit;
-		}
-
-		// 
-		// Packets we need is determined by context
-		//
-		status = SpbReadDataSynchronously(
-			SpbContext,
-			controller->Descriptors[index].DataBase + (BYTE)controller->Data6Offset,
-			controllerPenData,
-			controller->Data6Size
-		);
-
-		if (!NT_SUCCESS(status))
-		{
-			Trace(
-				TRACE_LEVEL_ERROR,
-				TRACE_INTERRUPT,
-				"Error reading pen status data - 0x%08lX",
-				status);
-
-			status = STATUS_SUCCESS;
-
-			ExFreePoolWithTag(
-				controllerPenData,
-				TOUCH_POOL_TAG_F12
-			);
-
-			goto exit;
-		}
-
-		// Translate structure
-		Data->ActivePenState.Pen = controllerPenData->Pen;
-		Data->ActivePenState.Invert = controllerPenData->Invert;
-		Data->ActivePenState.Barrel = controllerPenData->Barrel;
-		Data->ActivePenState.X = (controllerPenData->X_MSB << 8) | controllerPenData->X_LSB;
-		Data->ActivePenState.Y = (controllerPenData->Y_MSB << 8) | controllerPenData->Y_LSB;
-		Data->ActivePenState.Pressure = (controllerPenData->Pressure_MSB << 8) | controllerPenData->Pressure_LSB;
-		Data->ActivePenState.Battery = controllerPenData->Battery;
-		Data->ActivePenState.PenId = (controllerPenData->PenId[3] << 24) | (controllerPenData->PenId[2] << 16) | (controllerPenData->PenId[1] << 8) | controllerPenData->PenId[0];
-
-		ExFreePoolWithTag(
-			controllerPenData,
-			TOUCH_POOL_TAG_F12
-		);
-	}
-	else if (controller->Data6Size == sizeof(RMI4_F12_8BIT_PRESSURE_STYLUS_DATA_REGISTER))
-	{
-		PRMI4_F12_8BIT_PRESSURE_STYLUS_DATA_REGISTER controllerPenData = NULL;
-
-		controllerPenData = ExAllocatePoolWithTag(
-			NonPagedPoolNx,
-			controller->Data6Size,
-			TOUCH_POOL_TAG_F12
-		);
-
-		if (controllerPenData == NULL)
-		{
-			status = STATUS_INSUFFICIENT_RESOURCES;
-			goto exit;
-		}
-
-		// 
-		// Packets we need is determined by context
-		//
-		status = SpbReadDataSynchronously(
-			SpbContext,
-			controller->Descriptors[index].DataBase + (BYTE)controller->Data6Offset,
-			controllerPenData,
-			controller->Data6Size
-		);
-
-		if (!NT_SUCCESS(status))
-		{
-			Trace(
-				TRACE_LEVEL_ERROR,
-				TRACE_INTERRUPT,
-				"Error reading pen status data - 0x%08lX",
-				status);
-
-			status = STATUS_SUCCESS;
-
-			ExFreePoolWithTag(
-				controllerPenData,
-				TOUCH_POOL_TAG_F12
-			);
-
-			goto free_buffer;
-		}
-
-		// Translate structure
-		Data->ActivePenState.Pen = controllerPenData->Pen;
-		Data->ActivePenState.Invert = controllerPenData->Invert;
-		Data->ActivePenState.Barrel = controllerPenData->Barrel;
-		Data->ActivePenState.X = (controllerPenData->X_MSB << 8) | controllerPenData->X_LSB;
-		Data->ActivePenState.Y = (controllerPenData->Y_MSB << 8) | controllerPenData->Y_LSB;
-		Data->ActivePenState.Pressure = controllerPenData->Pressure;
-		Data->ActivePenState.Battery = controllerPenData->Battery;
-		Data->ActivePenState.PenId = (controllerPenData->PenId[3] << 24) | (controllerPenData->PenId[2] << 16) | (controllerPenData->PenId[1] << 8) | controllerPenData->PenId[0];
-
-		ExFreePoolWithTag(
-			controllerPenData,
-			TOUCH_POOL_TAG_F12
-		);
+		goto exit;
 	}
 
 exit:

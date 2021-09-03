@@ -425,6 +425,8 @@
     <ClCompile Include="..\src\registry.c" />
     <ClCompile Include="..\src\report.c" />
     <ClCompile Include="..\src\resolutions.c" />
+    <ClCompile Include="..\src\rmi4\f12\activepen.c" />
+    <ClCompile Include="..\src\rmi4\f12\finger.c" />
     <ClCompile Include="..\src\selftest.c" />
     <ClCompile Include="..\src\spb.c" />
     <ClCompile Include="..\src\rmi4\rmiinternal.c" />
@@ -450,6 +452,7 @@
     <ClInclude Include="..\include\queue.h" />
     <ClInclude Include="..\include\resolutions.h" />
     <ClInclude Include="..\include\resource.h" />
+    <ClInclude Include="..\include\rmi4\f12\finger.h" />
     <ClInclude Include="..\include\selftest.h" />
     <ClInclude Include="..\include\spb.h" />
     <ClInclude Include="..\include\trace.h" />
@@ -457,6 +460,7 @@
     <ClInclude Include="..\include\rmi4\f01\function01.h" />
     <ClInclude Include="..\include\rmi4\f12\controlregisters.h" />
     <ClInclude Include="..\include\rmi4\f12\function12.h" />
+    <ClInclude Include="..\include\rmi4\f12\activepen.h" />
     <ClInclude Include="..\include\rmi4\f1a\function1a.h" />
     <ClInclude Include="..\include\enoselftest.h" />
   </ItemGroup>

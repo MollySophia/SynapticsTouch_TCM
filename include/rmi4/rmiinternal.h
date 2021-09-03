@@ -207,16 +207,20 @@ typedef struct _RMI4_DETECTED_OBJECT_POSITION
 } RMI4_DETECTED_OBJECT_POSITION;
 
 typedef struct _RMI4_DETECTED_PEN {
-	BYTE Pen : 1;
-	BYTE Invert : 1;
-	BYTE Barrel : 1;
-	BYTE Reserved : 5;
-	int X;
-	int Y;
-	int Pressure;
-	BYTE Battery;
+	BOOLEAN Pen;
+	BOOLEAN Invert;
+	BOOLEAN Barrel;
+	UINT32 X;
+	UINT32 Y;
+	UCHAR Pressure;
+	UCHAR Battery;
 	DWORD PenId;
 } RMI4_DETECTED_PEN, * PRMI4_DETECTED_PEN;
+
+typedef struct _RMI4_DETECTED_BUTTONS
+{
+	BYTE ButtonStates[RMI4_MAX_BUTTONS];
+} RMI4_DETECTED_BUTTONS;
 
 typedef struct _RMI4_DETECTED_OBJECTS
 {
@@ -226,11 +230,6 @@ typedef struct _RMI4_DETECTED_OBJECTS
 	RMI4_DETECTED_OBJECT_POSITION Positions[RMI4_MAX_TOUCHES];
 	RMI4_DETECTED_PEN ActivePenState;
 } RMI4_DETECTED_OBJECTS;
-
-typedef struct _RMI4_DETECTED_BUTTONS
-{
-	BYTE ButtonStates[RMI4_MAX_BUTTONS];
-} RMI4_DETECTED_BUTTONS;
 
 #define RMI4_FINGER_STATE_NOT_PRESENT                  0
 #define RMI4_FINGER_STATE_PRESENT_WITH_ACCURATE_POS    1
@@ -380,6 +379,7 @@ typedef struct _RMI4_CONTROLLER_CONTEXT
 	int PensReported;
 	int PensTotal;
 	RMI4_PEN_CACHE PenCache;
+	BOOLEAN PenPresent;
 
 	RMI4_BUTTON_CACHE ButtonCache;
 
@@ -392,24 +392,6 @@ typedef struct _RMI4_CONTROLLER_CONTEXT
 	RMI_REGISTER_DESCRIPTOR ControlRegDesc;
 	RMI_REGISTER_DESCRIPTOR DataRegDesc;
 	size_t PacketSize;
-
-	USHORT Data1Offset;
-	USHORT Data1Size;
-
-	USHORT Data2Offset;
-	USHORT Data2Size;
-
-	USHORT Data4Offset;
-	USHORT Data4Size;
-
-	USHORT Data6Offset;
-	USHORT Data6Size;
-
-	USHORT Data13Offset;
-	USHORT Data13Size;
-
-	USHORT Data15Offset;
-	USHORT Data15Size;
 
 	BYTE MaxFingers;
 

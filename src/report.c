@@ -343,34 +343,76 @@ Return Value:
 
 	RtlZeroMemory(HidReport, sizeof(HID_PEN_REPORT));
 
+	if (data.ActivePenState.Pen == 0) {
+		if (ControllerContext->PenPresent)
+		{
+			ControllerContext->PenPresent = FALSE;
+		}
 
-	USHORT SctatchX = (USHORT)data.ActivePenState.X;
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_INTERRUPT,
+			"No active pen data",
+			status);
+
+		goto exit;
+	}
+
+	USHORT ScratchX = (USHORT)data.ActivePenState.X;
 	USHORT ScratchY = (USHORT)data.ActivePenState.Y;
+
+	if ((ScratchX == 0xFFFF) && (ScratchY == 0xFFFF)) {
+		if (ControllerContext->PenPresent)
+		{
+			ControllerContext->PenPresent = FALSE;
+		}
+
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_INTERRUPT,
+			"Active pen in range but no valid x & y",
+			status);
+
+		goto exit;
+	}
 
 	//
 	// Perform per-platform x/y adjustments to controller coordinates
 	//
 	TchTranslateToDisplayCoordinates(
-		&SctatchX,
+		&ScratchX,
 		&ScratchY,
 		&ControllerContext->Props);
 
-	HidReport->TipSwitch = FINGER_STATUS;
+	//ControllerContext->PenBattery = data.ActivePenState.Battery;
+	//ControllerContext->PenId = data.ActivePenState.PenId;
+
+	HidReport->TipSwitch = data.ActivePenState.Pressure > 0;
+	HidReport->Eraser = data.ActivePenState.Invert;
 	HidReport->BarrelSwitch = data.ActivePenState.Barrel;
-	HidReport->Invert = data.ActivePenState.Invert;
-	HidReport->Eraser = 0;
-	HidReport->InRange = data.ActivePenState.Pen;
 
-	HidReport->X = SctatchX;
+	HidReport->X = ScratchX;
 	HidReport->Y = ScratchY;
+	HidReport->TipPressure = data.ActivePenState.Pressure;
 
-	HidReport->TipPressure = (UCHAR)data.ActivePenState.Pressure;
+	Trace(
+		TRACE_LEVEL_INFORMATION,
+		TRACE_INTERRUPT,
+		"Active pen: "
+		"Status = %d, "
+		"Invert = %d, "
+		"Barrel = %d, "
+		"X = %d, "
+		"Y = %d, "
+		"Pressure = %d",
+		data.ActivePenState.Pen,
+		data.ActivePenState.Invert,
+		data.ActivePenState.Barrel,
+		ScratchX, ScratchY, data.ActivePenState.Pressure);
 
-	HidReport->XTilt = 0;
-	HidReport->YTilt = 0;
+	ControllerContext->PenPresent = TRUE;
 
-//exit:
-
+exit:
 	return status;
 }
 

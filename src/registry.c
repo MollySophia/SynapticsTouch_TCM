@@ -1711,7 +1711,7 @@ RtlReadRegistryValue(
         return 0;
 
     len = sizeof(KEY_VALUE_PARTIAL_INFORMATION) + length;
-    pinfo = ExAllocatePool(NonPagedPool, len);
+    pinfo = ExAllocatePoolWithTag(NonPagedPool, len, TOUCH_POOL_TAG);
     rc = ZwQueryValueKey(handle, &valname, KeyValuePartialInformation,
         pinfo, len, &reslen);
     if ((NT_SUCCESS(rc) || rc == STATUS_BUFFER_OVERFLOW) &&
@@ -1723,7 +1723,7 @@ RtlReadRegistryValue(
     }
     else
         reslen = 0;
-    ExFreePool(pinfo);
+    ExFreePoolWithTag(pinfo, TOUCH_POOL_TAG);
 
     ZwClose(handle);
     return rc;
