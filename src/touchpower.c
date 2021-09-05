@@ -202,7 +202,6 @@ PowerInitialize(
         "PowerInitialize: Entry"
     );
 
-    // Register for PnP notifications from USB and SMD devices.  Open ports when device drivers are ready.
     status = IoRegisterPlugPlayNotification(
         EventCategoryDeviceInterfaceChange,
         PNPNOTIFY_DEVICE_INTERFACE_INCLUDE_EXISTING_INTERFACES,
