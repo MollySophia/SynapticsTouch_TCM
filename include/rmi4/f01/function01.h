@@ -66,10 +66,6 @@ typedef struct _RMI4_F01_DATA_REGISTERS
     BYTE InterruptStatus[1];
 } RMI4_F01_DATA_REGISTERS;
 
-#define RMI4_INTERRUPT_BIT_2D_TOUCH               0x04
-#define RMI4_INTERRUPT_BIT_0D_CAP_BUTTON          0x10
-#define RMI4_INTERRUPT_BIT_0D_CAP_BUTTON_REVERSED 0x20
-
 #define RMI4_F01_DATA_STATUS_NO_ERROR             0
 #define RMI4_F01_DATA_STATUS_RESET_OCCURRED       1
 #define RMI4_F01_DATA_STATUS_INVALID_CONFIG       2
@@ -120,4 +116,23 @@ VOID
 RmiConvertF01ToPhysical(
     IN RMI4_F01_CTRL_REGISTERS_LOGICAL* Logical,
     IN RMI4_F01_CTRL_REGISTERS* Physical
+);
+
+NTSTATUS
+RmiSetInterruptEnable(
+    IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
+    IN SPB_CONTEXT* SpbContext,
+    IN UCHAR InterruptEnable
+);
+
+UCHAR
+RmiGetFunctionInterruptMask(
+    IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
+    IN int FunctionDesired
+);
+
+NTSTATUS
+RmiConfigureInterruptEnable(
+    IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
+    IN SPB_CONTEXT* SpbContext
 );

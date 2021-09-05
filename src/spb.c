@@ -24,6 +24,8 @@
 #include "spb.h"
 #include <spb.tmh>
 
+#define I2C_VERBOSE_LOGGING 0
+
 NTSTATUS
 SpbDoWriteDataSynchronously(
     IN SPB_CONTEXT* SpbContext,
@@ -108,6 +110,16 @@ SpbDoWriteDataSynchronously(
     // Address is followed by the data payload
     //
     RtlCopyMemory((buffer + sizeof(Address)), Data, length - sizeof(Address));
+
+#if I2C_VERBOSE_LOGGING
+    DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "I2CWRITE: LENGTH=%d", length);
+    for (ULONG j = 0; j < length; j++)
+    {
+        UCHAR byte = *(buffer + j);
+        DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, " %02hhX", byte);
+    }
+    DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "\n");
+#endif
 
     status = WdfIoTargetSendWriteSynchronously(
         SpbContext->SpbIoTarget,
@@ -293,6 +305,16 @@ SpbReadDataSynchronously(
         goto exit;
     }
 
+#if I2C_VERBOSE_LOGGING
+    DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "I2CREAD: LENGTH=%d", Length);
+    for (ULONG j = 0; j < Length; j++)
+    {
+        UCHAR byte = *(buffer + j);
+        DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, " %02hhX", byte);
+    }
+    DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "\n");
+#endif
+
     //
     // Copy back to the caller's buffer
     //
@@ -398,7 +420,7 @@ SpbTargetInitialize(
         Trace(
             TRACE_LEVEL_ERROR,
             TRACE_SPB,
-            "Error creating IoTarget object - 0x%08lX", 
+            "Error creating IoTarget object - 0x%08lX",
             status);
 
         WdfObjectDelete(SpbContext->SpbIoTarget);
@@ -441,7 +463,7 @@ SpbTargetInitialize(
         Trace(
             TRACE_LEVEL_ERROR,
             TRACE_SPB,
-            "Error opening Spb target for communication - 0x%08lX", 
+            "Error opening Spb target for communication - 0x%08lX",
             status);
         goto exit;
     }

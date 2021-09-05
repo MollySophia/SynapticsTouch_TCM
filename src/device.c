@@ -28,6 +28,8 @@
 #include <hid.h>
 #include <gpio.h>
 #include <device.h>
+#include <rmi4/rmiinternal.h>
+#include <touchpower.h>
 #include <device.tmh>
 
 #ifdef ALLOC_PRAGMA
@@ -64,24 +66,21 @@ OnInterruptIsr(
 {
     PDEVICE_EXTENSION devContext;
     NTSTATUS status;
-    WDFREQUEST request;
-    BOOLEAN servicingComplete;
-    HID_INPUT_REPORT hidReportFromDriver;
-    PHID_INPUT_REPORT hidReportRequestBuffer;
-    size_t hidReportRequestBufferLength;
 
     UNREFERENCED_PARAMETER(MessageID);
 
+    Trace(
+        TRACE_LEVEL_ERROR,
+        TRACE_REPORTING,
+        "OnInterruptIsr - Entry");
+
     status = STATUS_SUCCESS;
-    servicingComplete = FALSE;
     devContext = GetDeviceContext(WdfInterruptGetDevice(Interrupt));
-    request = NULL;
 
     //
     // For performance tracing, write an ETW event marker
     //
     //EventWriteTouchIsr(&TouchMiniDriverControlGuid);
-
 
     //
     // If we're in diagnostic mode, let the diagnostic application handle
@@ -92,93 +91,22 @@ OnInterruptIsr(
         goto exit;
     }
 
+    //
+    // Service touch interrupts.
+    //
+    status = RmiServiceInterrupts(
+        devContext->TouchContext,
+        &devContext->I2CContext,
+        devContext->PingPongQueue);
 
-    //
-    // Service the device interrupt
-    //
-    while (servicingComplete == FALSE)
+    if (!NT_SUCCESS(status))
     {
-        //
-        // Service touch interrupts. Success indicates we have a report
-        // to complete to Hid. ServicingComplete indicates another report
-        // is required to continue servicing this interrupt.
-        //
-        if (!NT_SUCCESS(TchServiceInterrupts(
-            devContext->TouchContext,
-            &devContext->I2CContext,
-            &hidReportFromDriver,
-            devContext->InputMode,
-            &servicingComplete)))
-        {
-            //
-            // hidReportFromDriver was not filled
-            //
-            continue;
-        }
-
-        //
-        // Complete a HIDClass request if one is available
-        //
-        status = WdfIoQueueRetrieveNextRequest(
-            devContext->PingPongQueue,
-            &request);
-
-        if (!NT_SUCCESS(status))
-        {
-            Trace(
-                TRACE_LEVEL_ERROR,
-                TRACE_REPORTING,
-                "No request pending from HIDClass, ignoring report - 0x%08lX",
-                status);
-
-            continue;
-        }
-
-        //
-        // Validate an output buffer was provided
-        //
-        status = WdfRequestRetrieveOutputBuffer(
-            request,
-            sizeof(HID_INPUT_REPORT),
-            &hidReportRequestBuffer,
-            &hidReportRequestBufferLength);
-
-        if (!NT_SUCCESS(status))
-        {
-            Trace(
-                TRACE_LEVEL_VERBOSE,
-                TRACE_SAMPLES,
-                "Error retrieving HID read request output buffer - 0x%08lX",
-                status);
-        }
-        else
-        {
-            //
-            // Validate the size of the output buffer
-            //
-            if (hidReportRequestBufferLength < sizeof(HID_INPUT_REPORT))
-            {
-                status = STATUS_BUFFER_TOO_SMALL;
-
-                Trace(
-                    TRACE_LEVEL_VERBOSE,
-                    TRACE_SAMPLES,
-                    "Error HID read request buffer is too small (%I64x bytes) - 0x%08lX",
-                    hidReportRequestBufferLength,
-                    status);
-            }
-            else
-            {
-                RtlCopyMemory(
-                    hidReportRequestBuffer,
-                    &hidReportFromDriver,
-                    sizeof(HID_INPUT_REPORT));
-
-                WdfRequestSetInformation(request, sizeof(HID_INPUT_REPORT));
-            }
-        }
-
-        WdfRequestComplete(request, status);
+        Trace(
+            TRACE_LEVEL_ERROR,
+            TRACE_REPORTING,
+            "Error servicing interrupts - 0x%08lX",
+            status);
+        goto exit;
     }
 
 exit:
@@ -492,6 +420,22 @@ OnPrepareHardware(
     }
 
     //
+    // Initialize Touch Power so the driver can issue power state changes
+    //
+    status = PowerInitialize(FxDevice);
+
+    if (!NT_SUCCESS(status))
+    {
+        Trace(
+            TRACE_LEVEL_ERROR,
+            TRACE_INIT,
+            "Error in touch power initialization - 0x%08lX",
+            status);
+
+        goto exit;
+    }
+
+    //
     // Prepare the hardware for touch scanning
     //
     status = TchAllocateContext(&devContext->TouchContext, FxDevice);
@@ -665,6 +609,20 @@ OnReleaseHardware(
     }
 
     //EventUnregisterMicrosoft_WindowsPhone_TouchMiniDriver();
+
+    //
+    // DeInitialize Touch Power
+    //
+    status = PowerDeInitialize(FxDevice);
+
+    if (!NT_SUCCESS(status))
+    {
+        Trace(
+            TRACE_LEVEL_ERROR,
+            TRACE_INIT,
+            "Error in touch power deinitialization - 0x%08lX",
+            status);
+    }
 
     SpbTargetDeinitialize(FxDevice, &GetDeviceContext(FxDevice)->I2CContext);
 

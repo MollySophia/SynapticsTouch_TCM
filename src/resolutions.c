@@ -21,8 +21,9 @@
 
 --*/
 
-#include <Cross Platform Shim\compat.h>
-#include <rmi4\rmiinternal.h>
+#include <wdm.h>
+#include <controller.h>
+#include <resolutions.h>
 #include <resolutions.tmh>
 
 //
@@ -389,12 +390,6 @@ TchTranslateToDisplayCoordinates(
     {
         Y += Props->DisplayLetterBoxHeightBottom;
     }
-
-    Trace(
-        TRACE_LEVEL_INFORMATION,
-        TRACE_REPORTING,
-        "In (%d,%d), Out (%d,%d)",
-        *PX, *PY, X, Y);
 
     *PX = (USHORT) X;
     *PY = (USHORT) Y;

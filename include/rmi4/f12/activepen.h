@@ -62,5 +62,5 @@ NTSTATUS
 RmiGetPenStatusFromControllerF12(
 	IN VOID* ControllerContext,
 	IN SPB_CONTEXT* SpbContext,
-	IN RMI4_DETECTED_OBJECTS* Data
+	IN RMI4_DETECTED_PEN* Data
 );

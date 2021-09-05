@@ -86,8 +86,23 @@ TchStartDevice(
 	{
 		Trace(
 			TRACE_LEVEL_ERROR,
+			TRACE_INTERRUPT,
+			"Could not configure chip - 0x%08lX",
+			status);
+
+		goto exit;
+	}
+
+	status = RmiConfigureInterruptEnable(
+		ControllerContext,
+		SpbContext);
+
+	if (!NT_SUCCESS(status))
+	{
+		Trace(
+			TRACE_LEVEL_ERROR,
 			TRACE_INIT,
-			"Could not configure RMI functions - 0x%08lX",
+			"Could not configure interrupt enablement - 0x%08lX",
 			status);
 		goto exit;
 	}
@@ -128,7 +143,6 @@ TchStartDevice(
 	}
 
 exit:
-
 	return status;
 }
 

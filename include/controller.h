@@ -17,6 +17,7 @@
 //
 #define TOUCH_POOL_TAG                  (ULONG)'cuoT'
 #define TOUCH_POOL_TAG_F12              (ULONG)'21oT'
+#define TOUCH_POWER_POOL_TAG            (ULONG)'PuoT'
 
 //
 // Constants
@@ -216,11 +217,11 @@ TchFreeContext(
     IN VOID *ControllerContext
     );
 
-NTSTATUS 
+NTSTATUS
 TchStartDevice(
-    IN VOID *ControllerContext,
-    IN SPB_CONTEXT *SpbContext
-    );
+	IN VOID* ControllerContext,
+	IN SPB_CONTEXT* SpbContext
+);
 
 NTSTATUS 
 TchStopDevice(
@@ -258,15 +259,6 @@ TchRegistryGetControllerSettings(
 VOID
 TchGetTouchSettings(
 	IN PTOUCH_SCREEN_SETTINGS TouchSettings
-);
-   
-NTSTATUS
-TchServiceInterrupts(
-    IN VOID *ControllerContext,
-    IN SPB_CONTEXT *SpbContext,
-    IN PHID_INPUT_REPORT HidReport,
-    IN UCHAR InputMode,
-    OUT BOOLEAN *ServicingComplete
 );
 
 NTSTATUS

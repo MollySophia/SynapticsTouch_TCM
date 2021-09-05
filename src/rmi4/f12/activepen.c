@@ -15,7 +15,7 @@ NTSTATUS
 RmiGetPenStatusFromControllerF12(
 	IN VOID* ControllerContext,
 	IN SPB_CONTEXT* SpbContext,
-	IN RMI4_DETECTED_OBJECTS* Data
+	IN RMI4_DETECTED_PEN* ActivePenState
 )
 {
 	NTSTATUS status;
@@ -25,12 +25,12 @@ RmiGetPenStatusFromControllerF12(
 	PVOID controllerData = NULL;
 	controller = (RMI4_CONTROLLER_CONTEXT*)ControllerContext;
 
-	UINT8 Data6Offset = RmiGetRegisterIndex(&controller->DataRegDesc, 6);
-	if (Data6Offset == controller->DataRegDesc.NumRegisters)
+	UINT8 Data6Offset = RmiGetRegisterIndex(&controller->F12DataRegDesc, 6);
+	if (Data6Offset == controller->F12DataRegDesc.NumRegisters)
 	{
 		return 0;
 	}
-	USHORT Data6Size = (USHORT)controller->DataRegDesc.Registers[Data6Offset].RegisterSize;
+	USHORT Data6Size = (USHORT)controller->F12DataRegDesc.Registers[Data6Offset].RegisterSize;
 
 	if (Data6Size != sizeof(RMI4_F12_16BIT_PRESSURE_STYLUS_DATA_REGISTER) &&
 		Data6Size != sizeof(RMI4_F12_8BIT_PRESSURE_STYLUS_DATA_REGISTER))
@@ -115,36 +115,15 @@ RmiGetPenStatusFromControllerF12(
 	{
 		PRMI4_F12_16BIT_PRESSURE_STYLUS_DATA_REGISTER controllerPenData = (PRMI4_F12_16BIT_PRESSURE_STYLUS_DATA_REGISTER)controllerData;
 
-		Trace(
-			TRACE_LEVEL_INFORMATION,
-			TRACE_INTERRUPT,
-			"Alt Pen Data:\n"
-			"Pen: %d\n"
-			"Invert: %d\n"
-			"Barrel: %d\n"
-			"X: %d\n"
-			"Y: %d\n"
-			"Pressure: %d\n"
-			"Battery: %d\n"
-			"PenId: %d",
-			controllerPenData->Pen,
-			controllerPenData->Invert,
-			controllerPenData->Barrel,
-			controllerPenData->X_MSB,
-			controllerPenData->Y_MSB,
-			controllerPenData->Pressure_MSB,
-			controllerPenData->Battery,
-			controllerPenData->PenId_24_31);
-
 		// Translate structure
-		Data->ActivePenState.Pen = controllerPenData->Pen;
-		Data->ActivePenState.Invert = controllerPenData->Invert;
-		Data->ActivePenState.Barrel = controllerPenData->Barrel;
-		Data->ActivePenState.X = (controllerPenData->X_MSB << 8) | controllerPenData->X_LSB;
-		Data->ActivePenState.Y = (controllerPenData->Y_MSB << 8) | controllerPenData->Y_LSB;
-		Data->ActivePenState.Pressure = (controllerPenData->Pressure_MSB << 8) | controllerPenData->Pressure_LSB;
-		Data->ActivePenState.Battery = controllerPenData->Battery;
-		Data->ActivePenState.PenId = (controllerPenData->PenId_0_7 << 24) | 
+		ActivePenState->Pen = controllerPenData->Pen;
+		ActivePenState->Invert = controllerPenData->Invert;
+		ActivePenState->Barrel = controllerPenData->Barrel;
+		ActivePenState->X = (controllerPenData->X_MSB << 8) | controllerPenData->X_LSB;
+		ActivePenState->Y = (controllerPenData->Y_MSB << 8) | controllerPenData->Y_LSB;
+		ActivePenState->Pressure = (controllerPenData->Pressure_MSB << 8) | controllerPenData->Pressure_LSB;
+		ActivePenState->Battery = controllerPenData->Battery;
+		ActivePenState->PenId = (controllerPenData->PenId_0_7 << 24) | 
 			(controllerPenData->PenId_8_15 << 16) | 
 			(controllerPenData->PenId_16_23 << 8) | 
 			controllerPenData->PenId_24_31;
@@ -152,62 +131,20 @@ RmiGetPenStatusFromControllerF12(
 	else if (Data6Size == sizeof(RMI4_F12_8BIT_PRESSURE_STYLUS_DATA_REGISTER))
 	{
 		PRMI4_F12_8BIT_PRESSURE_STYLUS_DATA_REGISTER controllerPenData = (PRMI4_F12_8BIT_PRESSURE_STYLUS_DATA_REGISTER)controllerData;
-
-		Trace(
-			TRACE_LEVEL_INFORMATION,
-			TRACE_INTERRUPT,
-			"Alt Pen Data:\n"
-			"Pen: %d\n"
-			"Invert: %d\n"
-			"Barrel: %d\n"
-			"X: %d\n"
-			"Y: %d\n"
-			"Pressure: %d\n"
-			"Battery: %d\n"
-			"PenId: %d",
-			controllerPenData->Pen,
-			controllerPenData->Invert,
-			controllerPenData->Barrel,
-			controllerPenData->X_MSB,
-			controllerPenData->Y_MSB,
-			controllerPenData->Pressure,
-			controllerPenData->Battery,
-			controllerPenData->PenId_24_31);
-
+		
 		// Translate structure
-		Data->ActivePenState.Pen = controllerPenData->Pen;
-		Data->ActivePenState.Invert = controllerPenData->Invert;
-		Data->ActivePenState.Barrel = controllerPenData->Barrel;
-		Data->ActivePenState.X = (controllerPenData->X_MSB << 8) | controllerPenData->X_LSB;
-		Data->ActivePenState.Y = (controllerPenData->Y_MSB << 8) | controllerPenData->Y_LSB;
-		Data->ActivePenState.Pressure = controllerPenData->Pressure;
-		Data->ActivePenState.Battery = controllerPenData->Battery;
-		Data->ActivePenState.PenId = (controllerPenData->PenId_0_7 << 24) |
+		ActivePenState->Pen = controllerPenData->Pen;
+		ActivePenState->Invert = controllerPenData->Invert;
+		ActivePenState->Barrel = controllerPenData->Barrel;
+		ActivePenState->X = (controllerPenData->X_MSB << 8) | controllerPenData->X_LSB;
+		ActivePenState->Y = (controllerPenData->Y_MSB << 8) | controllerPenData->Y_LSB;
+		ActivePenState->Pressure = controllerPenData->Pressure;
+		ActivePenState->Battery = controllerPenData->Battery;
+		ActivePenState->PenId = (controllerPenData->PenId_0_7 << 24) |
 			(controllerPenData->PenId_8_15 << 16) |
 			(controllerPenData->PenId_16_23 << 8) |
 			controllerPenData->PenId_24_31;
 	}
-
-	Trace(
-		TRACE_LEVEL_INFORMATION,
-		TRACE_INTERRUPT,
-		"Active Pen Data:\n"
-		"Pen: %d\n"
-		"Invert: %d\n"
-		"Barrel: %d\n"
-		"X: %d\n"
-		"Y: %d\n"
-		"Pressure: %d\n"
-		"Battery: %d\n"
-		"PenId: %d",
-		Data->ActivePenState.Pen,
-		Data->ActivePenState.Invert,
-		Data->ActivePenState.Barrel,
-		Data->ActivePenState.X,
-		Data->ActivePenState.Y,
-		Data->ActivePenState.Pressure,
-		Data->ActivePenState.Battery,
-		Data->ActivePenState.PenId);
 
 free_buffer:
 	ExFreePoolWithTag(

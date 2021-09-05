@@ -43,6 +43,12 @@
     <Filter Include="Header Files\rmi4\f1a">
       <UniqueIdentifier>{55b3667f-7236-4ab2-8d47-079512a3f281}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\interfaces">
+      <UniqueIdentifier>{bbeaca4f-005a-4329-b642-6946e7fce119}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\interfaces">
+      <UniqueIdentifier>{78f7e746-a2d4-42d7-8a03-0e5247e4883d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\device.c">
@@ -69,9 +75,6 @@
     <ClCompile Include="..\src\registry.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\report.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\resolutions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -90,23 +93,32 @@
     <ClCompile Include="..\src\rmi4\f1a\function1a.c">
       <Filter>Source Files\rmi4\f1a</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\selftest.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\Cross Platform Shim\bitops.c">
       <Filter>Source Files\Cross Platform Shim</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Cross Platform Shim\hweight.c">
       <Filter>Source Files\Cross Platform Shim</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\enoselftest.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\rmi4\f12\activepen.c">
       <Filter>Source Files\rmi4\f12</Filter>
     </ClCompile>
     <ClCompile Include="..\src\rmi4\f12\finger.c">
       <Filter>Source Files\rmi4\f12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rmi4\rmiregisters.c">
+      <Filter>Source Files\rmi4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rmi4\f12\registers.c">
+      <Filter>Source Files\rmi4\f12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\enoselftest.c">
+      <Filter>Source Files\interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\selftest.c">
+      <Filter>Source Files\interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\touchpower.c">
+      <Filter>Source Files\interfaces</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -171,17 +183,11 @@
     <ClInclude Include="..\include\rmi4\f1a\function1a.h">
       <Filter>Header Files\rmi4\f1a</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\selftest.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\Cross Platform Shim\bitops.h">
       <Filter>Header Files\Cross Platform Shim</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Cross Platform Shim\compat.h">
       <Filter>Header Files\Cross Platform Shim</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\enoselftest.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Cross Platform Shim\hweight.h">
       <Filter>Header Files\Cross Platform Shim</Filter>
@@ -191,6 +197,21 @@
     </ClInclude>
     <ClInclude Include="..\include\rmi4\f12\finger.h">
       <Filter>Header Files\rmi4\f12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rmi4\rmiregisters.h">
+      <Filter>Header Files\rmi4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rmi4\f12\registers.h">
+      <Filter>Header Files\rmi4\f12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\selftest.h">
+      <Filter>Header Files\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\enoselftest.h">
+      <Filter>Header Files\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\touchpower.h">
+      <Filter>Header Files\interfaces</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -27,6 +27,119 @@
 #include <rmiinternal.tmh>
 
 NTSTATUS
+RmiServiceInterrupts(
+	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
+	IN SPB_CONTEXT* SpbContext,
+	IN WDFQUEUE PingPongQueue
+)
+{
+	NTSTATUS status = STATUS_NO_DATA_DETECTED;
+	RMI4_CONTROLLER_CONTEXT* controller;
+
+	controller = (RMI4_CONTROLLER_CONTEXT*)ControllerContext;
+
+	//
+	// Grab a waitlock to ensure the ISR executes serially and is 
+	// protected against power state transitions
+	//
+	WdfWaitLockAcquire(controller->ControllerLock, NULL);
+
+	//
+	// Check the interrupt source if no interrupts are pending processing
+	//
+	if (controller->InterruptStatus == 0)
+	{
+		status = RmiCheckInterrupts(
+			controller,
+			SpbContext,
+			&controller->InterruptStatus);
+
+		if (!NT_SUCCESS(status))
+		{
+			Trace(
+				TRACE_LEVEL_ERROR,
+				TRACE_INTERRUPT,
+				"Error servicing interrupts - 0x%08lX",
+				status);
+
+			goto exit;
+		}
+	}
+
+	int i;
+	for (i = 0; i < controller->FunctionCount; i++)
+	{
+		if (controller->InterruptStatus & controller->FunctionInterruptMasks[i])
+		{
+			switch (controller->Descriptors[i].Number)
+			{
+			case 0x12:
+			{
+				status = RmiServiceInterruptF12(ControllerContext, SpbContext, PingPongQueue);
+				if (!NT_SUCCESS(status))
+				{
+					Trace(
+						TRACE_LEVEL_ERROR,
+						TRACE_INTERRUPT,
+						"Error servicing F12 interrupt - 0x%08lX",
+						status);
+
+					goto exit;
+				}
+
+				break;
+			}
+			case 0x1A:
+			{
+				status = RmiServiceInterruptF1A(ControllerContext, SpbContext, PingPongQueue);
+				if (!NT_SUCCESS(status))
+				{
+					Trace(
+						TRACE_LEVEL_ERROR,
+						TRACE_INTERRUPT,
+						"Error servicing F1A interrupt - 0x%08lX",
+						status);
+
+					goto exit;
+				}
+
+				break;
+			}
+			default:
+			{
+				Trace(
+					TRACE_LEVEL_ERROR,
+					TRACE_INTERRUPT,
+					"Interrupt not handled yet, must extend driver - $%02X",
+					controller->Descriptors[i].Number);
+
+				break;
+			}
+			}
+
+			controller->InterruptStatus &= ~(controller->FunctionInterruptMasks[i]);
+		}
+	}
+
+	if (controller->InterruptStatus != 0)
+	{
+		Trace(
+			TRACE_LEVEL_WARNING,
+			TRACE_INTERRUPT,
+			"Ignoring following interrupt flags - 0x%08lX",
+			controller->InterruptStatus);
+
+		controller->InterruptStatus = 0;
+	}
+
+exit:
+
+	WdfWaitLockRelease(controller->ControllerLock);
+
+	return status;
+}
+
+NTSTATUS
 RmiChangePage(
 	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
 	IN SPB_CONTEXT* SpbContext,
@@ -62,12 +175,6 @@ RmiChangePage(
 	}
 	else
 	{
-		Trace(
-			TRACE_LEVEL_INFORMATION,
-			TRACE_INIT,
-			"Changing page to %d",
-			DesiredPage);
-
 		page = (BYTE)DesiredPage;
 
 		status = SpbWriteDataSynchronously(
@@ -134,6 +241,24 @@ RmiGetFunctionIndex(
 	return i;
 }
 
+UCHAR
+RmiGetInterruptMask(
+	IN UCHAR interruptSrc,
+	IN UCHAR interruptCount
+)
+{
+	UCHAR ii;
+
+	UCHAR interruptOff = interruptCount % 8;
+	UCHAR interruptMask = 0;
+
+	for (ii = interruptOff; ii < (interruptSrc + interruptOff); ii++) {
+		interruptMask |= 1 << ii;
+	}
+
+	return interruptMask;
+}
+
 NTSTATUS
 RmiConfigureFunctions(
 	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
@@ -161,54 +286,66 @@ RmiConfigureFunctions(
 
 --*/
 {
-	NTSTATUS status;
+	NTSTATUS status = STATUS_SUCCESS;
+	int function;
+	UCHAR Number;
 
-	status = RmiConfigureF12(
-		ControllerContext,
-		SpbContext
-	);
-
-	if (!NT_SUCCESS(status))
+	for (function = 0; function < ControllerContext->FunctionCount; function++)
 	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Could not configure function $12 - 0x%08lX",
-			status);
+		Number = ControllerContext->Descriptors[function].Number;
 
-		goto exit;
-	}
+		switch (Number)
+		{
+		case 0x12:
+		{
+			status = RmiConfigureF12(
+				ControllerContext,
+				SpbContext
+			);
 
-	status = RmiConfigureF1A(
-		ControllerContext,
-		SpbContext
-	);
+			break;
+		}
+		case 0x1A:
+		{
+			status = RmiConfigureF1A(
+				ControllerContext,
+				SpbContext
+			);
 
-	if (!NT_SUCCESS(status))
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Could not configure function $1A - 0x%08lX",
-			status);
+			break;
+		}
+		case 0x01:
+		{
+			status = RmiConfigureF01(
+				ControllerContext,
+				SpbContext
+			);
 
-		goto exit;
-	}
+			break;
+		}
+		default:
+		{
+			Trace(
+				TRACE_LEVEL_ERROR,
+				TRACE_INIT,
+				"Unknown function $%x",
+				Number);
 
-	status = RmiConfigureF01(
-		ControllerContext,
-		SpbContext
-	);
+			status = STATUS_SUCCESS;
+		}
+		}
 
-	if (!NT_SUCCESS(status))
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Could not configure function $01 - 0x%08lX",
-			status);
+		if (!NT_SUCCESS(status))
+		{
+			Trace(
+				TRACE_LEVEL_ERROR,
+				TRACE_INIT,
+				"Could not configure function $%x - 0x%08lX",
+				Number,
+				status);
 
-		goto exit;
+			goto exit;
+		}
 	}
 
 exit:
@@ -242,16 +379,28 @@ RmiBuildFunctionsTable(
 --*/
 {
 	UCHAR address;
+	UCHAR interruptCount;
 	int function;
 	int page;
 	NTSTATUS status;
 
+	// Make sure we don't have any previous descriptor data available.
+	RtlZeroMemory(
+		ControllerContext->Descriptors,
+		sizeof(ControllerContext->Descriptors));
+	RtlZeroMemory(
+		ControllerContext->FunctionOnPage,
+		sizeof(ControllerContext->FunctionOnPage));
+	RtlZeroMemory(
+		ControllerContext->FunctionInterruptMasks,
+		sizeof(ControllerContext->FunctionInterruptMasks));
 
 	//
 	// First function is at a fixed address 
 	//
 	function = 0;
 	address = RMI4_FIRST_FUNCTION_ADDRESS;
+	interruptCount = 0;
 	page = 0;
 
 	//
@@ -273,28 +422,19 @@ RmiBuildFunctionsTable(
 			Trace(
 				TRACE_LEVEL_ERROR,
 				TRACE_INIT,
-				"Error returned from SPB/I2C read attempt %d - 0x%08lX",
+				"RmiBuildFunctionsTable: Error returned from SPB/I2C read attempt %d - 0x%08lX",
 				function,
 				status);
 			goto exit;
 		}
 
-		//
-		// Function number 0 implies "last function" on this register page,
-		// and if this "last function" is the first function on the page, there
-		// are no more functions to discover.
-		//
-		if (ControllerContext->Descriptors[function].Number == 0 &&
-			address == RMI4_FIRST_FUNCTION_ADDRESS)
-		{
-			break;
-		}
+		RMI4_FUNCTION_DESCRIPTOR Descriptor = ControllerContext->Descriptors[function];
+
 		//
 		// If we've exhausted functions on this page, look for more functions
 		// on the next register page
 		//
-		else if (ControllerContext->Descriptors[function].Number == 0 &&
-			address != RMI4_FIRST_FUNCTION_ADDRESS)
+		if (Descriptor.Number == 0)
 		{
 			page++;
 			address = RMI4_FIRST_FUNCTION_ADDRESS;
@@ -309,7 +449,7 @@ RmiBuildFunctionsTable(
 				Trace(
 					TRACE_LEVEL_ERROR,
 					TRACE_INIT,
-					"Error attempting to change page - 0x%08lX",
+					"RmiBuildFunctionsTable: Error attempting to change page - 0x%08lX",
 					status);
 				goto exit;
 			}
@@ -319,19 +459,39 @@ RmiBuildFunctionsTable(
 		//
 		else
 		{
+			ControllerContext->FunctionOnPage[function] = page;
+			ControllerContext->FunctionInterruptMasks[function] = RmiGetInterruptMask(
+				Descriptor.VersionIrq.IrqCount,
+				interruptCount);
+
+			interruptCount += Descriptor.VersionIrq.IrqCount;
+
 			Trace(
 				TRACE_LEVEL_VERBOSE,
 				TRACE_INIT,
-				"Discovered function $%x",
-				ControllerContext->Descriptors[function].Number);
+				"RmiBuildFunctionsTable: Discovered Function $%x:\n"
+				"- Query Base: 0x%02X\n"
+				"- Command Base: 0x%02X\n"
+				"- Control Base: 0x%02X\n"
+				"- Data Base: 0x%02X\n"
+				"- Interrupt Count: %d\n"
+				"- Function Version: %d\n"
+				"- Interrupt Mask: 0x%02X",
+				Descriptor.Number,
+				Descriptor.QueryBase,
+				Descriptor.CommandBase,
+				Descriptor.ControlBase,
+				Descriptor.DataBase,
+				Descriptor.VersionIrq.IrqCount,
+				Descriptor.VersionIrq.FuncVer,
+				ControllerContext->FunctionInterruptMasks[function]);
 
-			ControllerContext->FunctionOnPage[function] = page;
 			function++;
 			address = address - sizeof(RMI4_FUNCTION_DESCRIPTOR);
 		}
 
 	} while (
-		(address > 0) &&
+		(page < RMI4_MAX_FUNCTIONS) &&
 		(function < RMI4_MAX_FUNCTIONS));
 
 	//

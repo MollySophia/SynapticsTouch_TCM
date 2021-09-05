@@ -48,7 +48,7 @@ static RMI4_CONFIGURATION gDefaultConfiguration =
         1,                                              // No Sleep (do sleep)
         0,                                              // Report Rate (standard)
         1,                                              // Configured
-        0xf,                                            // Interrupt Enable
+        0xff,                                           // Interrupt Enable
         RMI4_MILLISECONDS_TO_TENTH_MILLISECONDS(20),    // Doze Interval
         10,                                             // Doze Threshold
         RMI4_SECONDS_TO_HALF_SECONDS(2)                 // Doze Holdoff
@@ -1704,17 +1704,48 @@ RtlReadRegistryValue(
     RtlInitUnicodeString(&keyname, registry_path);
     RtlInitUnicodeString(&valname, value_name);
 
-    InitializeObjectAttributes(&attribs, &keyname, OBJ_CASE_INSENSITIVE,
-        NULL, NULL);
-    rc = ZwOpenKey(&handle, KEY_QUERY_VALUE, &attribs);
+    InitializeObjectAttributes(
+        &attribs, 
+        &keyname, 
+        OBJ_CASE_INSENSITIVE,
+        NULL, 
+        NULL
+    );
+
+    rc = ZwOpenKey(
+        &handle, 
+        KEY_QUERY_VALUE, 
+        &attribs
+    );
+
     if (!NT_SUCCESS(rc))
+    {
         return 0;
+    }
 
     len = sizeof(KEY_VALUE_PARTIAL_INFORMATION) + length;
-    pinfo = ExAllocatePoolWithTag(NonPagedPool, len, TOUCH_POOL_TAG);
-    rc = ZwQueryValueKey(handle, &valname, KeyValuePartialInformation,
-        pinfo, len, &reslen);
-    if ((NT_SUCCESS(rc) || rc == STATUS_BUFFER_OVERFLOW) &&
+
+    pinfo = ExAllocatePoolWithTag(
+        NonPagedPool, 
+        len, 
+        TOUCH_POOL_TAG
+    );
+
+    if (pinfo == NULL)
+    {
+        goto exit;
+    }
+
+    rc = ZwQueryValueKey(
+        handle, 
+        &valname, 
+        KeyValuePartialInformation,
+        pinfo, 
+        len, 
+        &reslen
+    );
+
+    if ((NT_SUCCESS(rc) || rc == STATUS_BUFFER_OVERFLOW) && 
         reslen >= (sizeof(KEY_VALUE_PARTIAL_INFORMATION) - 1) &&
         (!type || pinfo->Type == type))
     {
@@ -1722,9 +1753,16 @@ RtlReadRegistryValue(
         memcpy(data, pinfo->Data, min(length, reslen));
     }
     else
+    {
         reslen = 0;
-    ExFreePoolWithTag(pinfo, TOUCH_POOL_TAG);
+    }
 
+    if (pinfo != NULL)
+    {
+        ExFreePoolWithTag(pinfo, TOUCH_POOL_TAG);
+    }
+
+exit:
     ZwClose(handle);
     return rc;
 }

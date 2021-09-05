@@ -27,12 +27,7 @@
 #include <rmi4\rmiinternal.h>
 #include <rmi4\f12\controlregisters.h>
 
-NTSTATUS
-RmiGetObjectsFromControllerF12(
-    IN VOID* ControllerContext,
-    IN SPB_CONTEXT* SpbContext,
-    IN RMI4_DETECTED_OBJECTS* Data
-);
+#define RMI4_INTERRUPT_BIT_2D_TOUCH               0x04
 
 NTSTATUS
 RmiConfigureF12(
@@ -80,4 +75,11 @@ RmiGetSupportedDataRegistersF12(
     IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
     IN SPB_CONTEXT* SpbContext,
     OUT PRMI4_F12_QUERY_8_REGISTER ControlRegisterData
+);
+
+NTSTATUS
+RmiServiceInterruptF12(
+    IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
+    IN SPB_CONTEXT* SpbContext,
+    IN WDFQUEUE PingPongQueue
 );

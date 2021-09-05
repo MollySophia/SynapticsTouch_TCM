@@ -26,6 +26,8 @@
 #include <wdf.h>
 #include <rmi4\rmiinternal.h>
 
+#define RMI4_INTERRUPT_BIT_0D_CAP_BUTTON          0x10
+#define RMI4_INTERRUPT_BIT_0D_CAP_BUTTON_REVERSED 0x20
 
 //
 // Function $1A - 0-D Capacitive Button Sensors
@@ -121,4 +123,11 @@ RmiGetObjectsFromControllerF1A(
 	IN SPB_CONTEXT* SpbContext,
 	IN RMI4_DETECTED_BUTTONS* Data,
 	IN BOOLEAN ReversedKeys
+);
+
+NTSTATUS
+RmiServiceInterruptF1A(
+	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
+	IN SPB_CONTEXT* SpbContext,
+	IN WDFQUEUE PingPongQueue
 );

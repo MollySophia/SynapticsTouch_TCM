@@ -423,10 +423,11 @@
     <ClCompile Include="..\src\power.c" />
     <ClCompile Include="..\src\queue.c" />
     <ClCompile Include="..\src\registry.c" />
-    <ClCompile Include="..\src\report.c" />
     <ClCompile Include="..\src\resolutions.c" />
     <ClCompile Include="..\src\rmi4\f12\activepen.c" />
     <ClCompile Include="..\src\rmi4\f12\finger.c" />
+    <ClCompile Include="..\src\rmi4\f12\registers.c" />
+    <ClCompile Include="..\src\rmi4\rmiregisters.c" />
     <ClCompile Include="..\src\selftest.c" />
     <ClCompile Include="..\src\spb.c" />
     <ClCompile Include="..\src\rmi4\rmiinternal.c" />
@@ -434,6 +435,7 @@
     <ClCompile Include="..\src\rmi4\f12\function12.c" />
     <ClCompile Include="..\src\rmi4\f1a\function1a.c" />
     <ClCompile Include="..\src\enoselftest.c" />
+    <ClCompile Include="..\src\touchpower.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\Resource.rc" />
@@ -449,10 +451,13 @@
     <ClInclude Include="..\include\HidCommon.h" />
     <ClInclude Include="..\include\idle.h" />
     <ClInclude Include="..\include\internal.h" />
+    <ClInclude Include="..\include\touchpower.h" />
     <ClInclude Include="..\include\queue.h" />
     <ClInclude Include="..\include\resolutions.h" />
     <ClInclude Include="..\include\resource.h" />
     <ClInclude Include="..\include\rmi4\f12\finger.h" />
+    <ClInclude Include="..\include\rmi4\f12\registers.h" />
+    <ClInclude Include="..\include\rmi4\rmiregisters.h" />
     <ClInclude Include="..\include\selftest.h" />
     <ClInclude Include="..\include\spb.h" />
     <ClInclude Include="..\include\trace.h" />

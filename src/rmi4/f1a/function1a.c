@@ -152,3 +152,130 @@ Return Value:
 exit:
 	return status;
 }
+
+/*++
+	Copyright (c) Microsoft Corporation. All Rights Reserved.
+	Copyright (c) Bingxing Wang. All Rights Reserved.
+	Copyright (c) LumiaWoA authors. All Rights Reserved.
+
+	Module Name:
+
+		report.c
+
+	Abstract:
+
+		Contains Synaptics specific code for reporting samples
+
+	Environment:
+
+		Kernel mode
+
+	Revision History:
+
+--*/
+
+NTSTATUS
+RmiServiceButtonDataInterrupt(
+	IN RMI4_DETECTED_BUTTONS data,
+	IN PHID_KEY_REPORT HidReport
+)
+{
+	NTSTATUS status;
+
+	status = STATUS_SUCCESS;
+
+	RtlZeroMemory(HidReport, sizeof(HID_KEY_REPORT));
+
+	HidReport->ACBack = data.ButtonStates[0];
+	HidReport->Start = data.ButtonStates[1];
+	HidReport->ACSearch = data.ButtonStates[2];
+
+	return status;
+}
+
+NTSTATUS
+TchServiceButtonsInterrupts(
+	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
+	IN SPB_CONTEXT* SpbContext,
+	IN WDFQUEUE PingPongQueue
+)
+{
+	NTSTATUS status = STATUS_NO_DATA_DETECTED;
+	RMI4_DETECTED_BUTTONS data;
+
+	HID_INPUT_REPORT HidReport;
+
+	RtlZeroMemory(&data, sizeof(RMI4_DETECTED_BUTTONS));
+
+	//
+	// See if new button data is available
+	//
+	status = RmiGetObjectsFromControllerF1A(
+		ControllerContext,
+		SpbContext,
+		&data,
+		ControllerContext->InterruptStatus & RMI4_INTERRUPT_BIT_0D_CAP_BUTTON_REVERSED
+	);
+
+	if (!NT_SUCCESS(status))
+	{
+		Trace(
+			TRACE_LEVEL_VERBOSE,
+			TRACE_SAMPLES,
+			"No button data to report - 0x%08lX",
+			status);
+
+		goto exit;
+	}
+
+	RtlZeroMemory(&HidReport, sizeof(HidReport));
+
+	HidReport.ReportID = REPORTID_KEYPAD;
+
+	status = RmiServiceButtonDataInterrupt(
+		data,
+		&(HidReport.KeyReport));
+
+	//
+	// Success indicates the report is ready to be sent, otherwise,
+	// continue to service interrupts.
+	//
+	if (!NT_SUCCESS(status))
+	{
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_INTERRUPT,
+			"Error processing button event - 0x%08lX",
+			status);
+	}
+
+	status = TchSendReport(PingPongQueue, &HidReport);
+
+	if (!NT_SUCCESS(status))
+	{
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_INTERRUPT,
+			"Error send hid report for button event - 0x%08lX",
+			status);
+
+		goto exit;
+	}
+
+exit:
+	return status;
+}
+
+NTSTATUS
+RmiServiceInterruptF1A(
+	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
+	IN SPB_CONTEXT* SpbContext,
+	IN WDFQUEUE PingPongQueue
+)
+{
+	NTSTATUS status = STATUS_SUCCESS;
+
+	TchServiceButtonsInterrupts(ControllerContext, SpbContext, PingPongQueue);
+
+	return status;
+}

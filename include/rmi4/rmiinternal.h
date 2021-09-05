@@ -212,7 +212,7 @@ typedef struct _RMI4_DETECTED_PEN {
 	BOOLEAN Barrel;
 	UINT32 X;
 	UINT32 Y;
-	UCHAR Pressure;
+	UINT16 Pressure;
 	UCHAR Battery;
 	DWORD PenId;
 } RMI4_DETECTED_PEN, * PRMI4_DETECTED_PEN;
@@ -228,7 +228,6 @@ typedef struct _RMI4_DETECTED_OBJECTS
 	BYTE PenStates[RMI4_MAX_TOUCHES];
 	BYTE PuckStates[RMI4_MAX_TOUCHES];
 	RMI4_DETECTED_OBJECT_POSITION Positions[RMI4_MAX_TOUCHES];
-	RMI4_DETECTED_PEN ActivePenState;
 } RMI4_DETECTED_OBJECTS;
 
 #define RMI4_FINGER_STATE_NOT_PRESENT                  0
@@ -346,6 +345,7 @@ typedef struct _RMI4_CONTROLLER_CONTEXT
 	int FunctionCount;
 	RMI4_FUNCTION_DESCRIPTOR Descriptors[RMI4_MAX_FUNCTIONS];
 	int FunctionOnPage[RMI4_MAX_FUNCTIONS];
+	UCHAR FunctionInterruptMasks[RMI4_MAX_FUNCTIONS];
 	int CurrentPage;
 
 	ULONG InterruptStatus;
@@ -388,9 +388,9 @@ typedef struct _RMI4_CONTROLLER_CONTEXT
 	//
 
 	BOOLEAN HasDribble;
-	RMI_REGISTER_DESCRIPTOR QueryRegDesc;
-	RMI_REGISTER_DESCRIPTOR ControlRegDesc;
-	RMI_REGISTER_DESCRIPTOR DataRegDesc;
+	RMI_REGISTER_DESCRIPTOR F12QueryRegDesc;
+	RMI_REGISTER_DESCRIPTOR F12ControlRegDesc;
+	RMI_REGISTER_DESCRIPTOR F12DataRegDesc;
 	size_t PacketSize;
 
 	BYTE MaxFingers;
@@ -445,4 +445,11 @@ NTSTATUS
 RmiConfigureFunctions(
 	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
 	IN SPB_CONTEXT* SpbContext
+);
+
+NTSTATUS
+RmiServiceInterrupts(
+	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
+	IN SPB_CONTEXT* SpbContext,
+	IN WDFQUEUE PingPongQueue
 );

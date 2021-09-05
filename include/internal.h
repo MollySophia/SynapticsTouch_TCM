@@ -37,6 +37,13 @@ DEFINE_GUID2(GUID_CONSOLE_DISPLAY_STATE, 0x6fe69556, 0x704a, 0x47a0, 0x8f, 0x24,
 #define TOUCH_DELAY_TO_COMMUNICATE 200000
 #define TOUCH_POWER_RAIL_STABLE_TIME 2000
 
+typedef struct _TOUCH_POWER_CONTEXT
+{
+    WDFIOTARGET TouchPowerIOTarget;
+    BOOLEAN TouchPowerOpen;
+    PVOID TouchPowerNotify;
+} TOUCH_POWER_CONTEXT;
+
 //
 // Device context
 //
@@ -107,6 +114,11 @@ typedef struct _DEVICE_EXTENSION
     //
     PVOID PoFxPowerSettingCallbackHandle1;
     PVOID PoFxPowerSettingCallbackHandle2;
+
+    //
+    // Touch Power
+    //
+    TOUCH_POWER_CONTEXT TouchPowerContext;
 } DEVICE_EXTENSION, *PDEVICE_EXTENSION;
 
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DEVICE_EXTENSION, GetDeviceContext)

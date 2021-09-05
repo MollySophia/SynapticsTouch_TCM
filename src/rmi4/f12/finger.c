@@ -7,6 +7,7 @@
 #include <HidCommon.h>
 #include <spb.h>
 #include <rmi4\rmiinternal.h>
+#include <rmi4\f12\registers.h>
 #include <rmi4\f12\controlregisters.h>
 #include <rmi4\f12\finger.h>
 #include <finger.tmh>
@@ -19,12 +20,12 @@ RmiGetFingerCountFromControllerF12(
 	RMI4_CONTROLLER_CONTEXT* controller;
 	controller = (RMI4_CONTROLLER_CONTEXT*)ControllerContext;
 
-	UINT8 Data1Offset = RmiGetRegisterIndex(&controller->DataRegDesc, 1);
-	if (Data1Offset == controller->DataRegDesc.NumRegisters)
+	UINT8 Data1Offset = RmiGetRegisterIndex(&controller->F12DataRegDesc, 1);
+	if (Data1Offset == controller->F12DataRegDesc.NumRegisters)
 	{
 		return 0;
 	}
-	USHORT Data1Size = (USHORT)controller->DataRegDesc.Registers[Data1Offset].RegisterSize;
+	USHORT Data1Size = (USHORT)controller->F12DataRegDesc.Registers[Data1Offset].RegisterSize;
 
 	USHORT SimpleSize = sizeof(RMI4_F12_FINGER_SIMPLE_DATA_REGISTER);
 	USHORT ZSize = sizeof(RMI4_F12_FINGER_3D_DATA_REGISTER);
@@ -35,38 +36,18 @@ RmiGetFingerCountFromControllerF12(
 
 	if (Data1Size % ZWSize == 0)
 	{
-		Trace(
-			TRACE_LEVEL_INFORMATION,
-			TRACE_INTERRUPT,
-			"Data register reports simple, z and w data");
-
 		FingerCount = Data1Size / ZWSize;
 	}
 	else if (Data1Size % WSize == 0)
 	{
-		Trace(
-			TRACE_LEVEL_INFORMATION,
-			TRACE_INTERRUPT,
-			"Data register reports simple and w data");
-
 		FingerCount = Data1Size / WSize;
 	}
 	else if (Data1Size % ZSize == 0)
 	{
-		Trace(
-			TRACE_LEVEL_INFORMATION,
-			TRACE_INTERRUPT,
-			"Data register reports simple and z data");
-
 		FingerCount = Data1Size / ZSize;
 	}
 	else if (Data1Size % SimpleSize == 0)
 	{
-		Trace(
-			TRACE_LEVEL_INFORMATION,
-			TRACE_INTERRUPT,
-			"Data register reports simple data");
-
 		FingerCount = Data1Size / SimpleSize;
 	}
 	else
@@ -110,55 +91,21 @@ Return Value:
 	NTSTATUS status;
 	RMI4_CONTROLLER_CONTEXT* controller;
 
-	int index, i, x, y;
+	int i, x, y;
 	PVOID controllerData = NULL;
 	controller = (RMI4_CONTROLLER_CONTEXT*)ControllerContext;
 
-	UINT8 Data1Offset = RmiGetRegisterIndex(&controller->DataRegDesc, 1);
-	if (Data1Offset == controller->DataRegDesc.NumRegisters)
+	UINT8 Data1Offset = RmiGetRegisterIndex(&controller->F12DataRegDesc, 1);
+	if (Data1Offset == controller->F12DataRegDesc.NumRegisters)
 	{
 		status = STATUS_SUCCESS;
 		goto exit;
 	}
-	USHORT Data1Size = (USHORT)controller->DataRegDesc.Registers[Data1Offset].RegisterSize;
+	USHORT Data1Size = (USHORT)controller->F12DataRegDesc.Registers[Data1Offset].RegisterSize;
 
 	if (controller->MaxFingers == 0)
 	{
 		status = STATUS_SUCCESS;
-		goto exit;
-	}
-
-	//
-	// Locate RMI data base address of 2D touch function
-	//
-	index = RmiGetFunctionIndex(
-		controller->Descriptors,
-		controller->FunctionCount,
-		RMI4_F12_2D_TOUCHPAD_SENSOR);
-
-	if (index == controller->FunctionCount)
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Unexpected - RMI Function 12 missing");
-
-		status = STATUS_INVALID_DEVICE_STATE;
-		goto exit;
-	}
-
-	status = RmiChangePage(
-		ControllerContext,
-		SpbContext,
-		controller->FunctionOnPage[index]);
-
-	if (!NT_SUCCESS(status))
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Could not change register page");
-
 		goto exit;
 	}
 
@@ -177,9 +124,10 @@ Return Value:
 	// 
 	// Packets we need is determined by context
 	//
-	status = SpbReadDataSynchronously(
+	status = RmiReadDataRegister(
+		controller,
 		SpbContext,
-		controller->Descriptors[index].DataBase + (BYTE)Data1Offset,
+		1,
 		controllerData,
 		Data1Size
 	);
@@ -258,23 +206,11 @@ Return Value:
 			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
 			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
 
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is finger",
-				i);
-
 			break;
 		case RMI4_F12_OBJECT_PALM:
 			Data->FingerStates[i] = RMI4_FINGER_STATE_NOT_PRESENT;
 			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
 			Data->PuckStates[i] = RMI4_PUCK_STATE_PRESENT_WITH_ACCURATE_POS;
-
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is palm",
-				i);
 
 			break;
 		case RMI4_F12_OBJECT_HOVERING_FINGER:
@@ -282,23 +218,11 @@ Return Value:
 			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
 			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
 
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is hovering finger",
-				i);
-
 			break;
 		case RMI4_F12_OBJECT_GLOVED_FINGER:
 			Data->FingerStates[i] = RMI4_FINGER_STATE_PRESENT_WITH_ACCURATE_POS;
 			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
 			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is gloved finger",
-				i);
 
 			break;
 		case RMI4_F12_OBJECT_ACTIVE_STYLUS:
@@ -306,23 +230,11 @@ Return Value:
 			Data->PenStates[i] = RMI4_PEN_STATE_PRESENT_WITH_TIP;
 			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
 
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is active stylus",
-				i);
-
 			break;
 		case RMI4_F12_OBJECT_STYLUS:
 			Data->FingerStates[i] = RMI4_FINGER_STATE_NOT_PRESENT;
 			Data->PenStates[i] = RMI4_PEN_STATE_PRESENT_WITH_TIP;
 			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is stylus",
-				i);
 
 			break;
 		case RMI4_F12_OBJECT_ERASER:
@@ -330,36 +242,17 @@ Return Value:
 			Data->PenStates[i] = RMI4_PEN_STATE_PRESENT_WITH_ERASER;
 			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
 
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is eraser",
-				i);
-
 			break;
 		case RMI4_F12_OBJECT_NONE:
 			Data->FingerStates[i] = RMI4_FINGER_STATE_NOT_PRESENT;
 			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
 			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
 
-			Trace(
-				TRACE_LEVEL_VERBOSE,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is none",
-				i);
-
 			break;
 		default:
 			Data->FingerStates[i] = RMI4_FINGER_STATE_NOT_PRESENT;
 			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
 			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				TRACE_INTERRUPT,
-				"Finger[%d] status is unknown: %d",
-				i,
-				ObjectTypeAndStatus);
 
 			break;
 		}
@@ -369,17 +262,6 @@ Return Value:
 
 		Data->Positions[i].X = x;
 		Data->Positions[i].Y = y;
-
-		if (ObjectTypeAndStatus != (BYTE)RMI4_F12_OBJECT_NONE)
-		{
-			Trace(
-				TRACE_LEVEL_VERBOSE,
-				TRACE_INTERRUPT,
-				"Finger[%d] X: %d, Y: %d",
-				i,
-				x,
-				y);
-		}
 	}
 
 free_buffer:

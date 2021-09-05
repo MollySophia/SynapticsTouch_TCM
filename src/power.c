@@ -25,8 +25,9 @@
 #include <rmi4\rmiinternal.h>
 #include <rmi4\f01\function01.h>
 #include <rmi4\f12\function12.h>
-#include <power.tmh>
 #include <internal.h>
+#include <touchpower.h>
+#include <power.tmh>
 
 NTSTATUS
 TchPowerSettingCallback(
@@ -167,6 +168,18 @@ TchPowerSettingCallback(
                 TRACE_POWER,
                 "The Display is Off");
 
+            status = PowerToggle(&devContext->TouchPowerContext, 0);
+
+            if (!NT_SUCCESS(status))
+            {
+                Trace(
+                    TRACE_LEVEL_ERROR,
+                    TRACE_POWER,
+                    "Error changing touch power state - 0x%08lX",
+                    status);
+                goto exit;
+            }
+
             if (NT_SUCCESS(RtlReadRegistryValue(
                 (PCWSTR)L"\\Registry\\Machine\\SOFTWARE\\OEM\\Nokia\\Touch\\WakeupGesture",
                 (PCWSTR)L"Enabled",
@@ -208,6 +221,18 @@ TchPowerSettingCallback(
                 TRACE_LEVEL_INFORMATION,
                 TRACE_POWER,
                 "The Display is On");
+
+            status = PowerToggle(&devContext->TouchPowerContext, 1);
+
+            if (!NT_SUCCESS(status))
+            {
+                Trace(
+                    TRACE_LEVEL_ERROR,
+                    TRACE_POWER,
+                    "Error changing touch power state - 0x%08lX",
+                    status);
+                goto exit;
+            }
 
             status = RmiSetReportingFlagsF12(
                 ControllerContext,

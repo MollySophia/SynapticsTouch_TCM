@@ -33,12 +33,6 @@ RmiChangeChargerConnectedState(
 
 	controlF01 = (RMI4_F01_CTRL_REGISTERS*)&deviceControl;
 
-	Trace(
-		TRACE_LEVEL_INFORMATION,
-		TRACE_POWER,
-		"Changing charger connected state to %X",
-		ChargerConnectedState);
-
 	//
 	// Find RMI device control function housing charger connected settings
 	// 
@@ -159,11 +153,6 @@ Return Value:
 
 	controlF01 = (RMI4_F01_CTRL_REGISTERS*)&deviceControl;
 
-	Trace(
-		TRACE_LEVEL_INFORMATION,
-		TRACE_POWER,
-		"Changing sleep state to %02X",
-		SleepState);
 	//
 	// Find RMI device control function housing sleep settings
 	// 
@@ -247,6 +236,165 @@ Return Value:
 
 exit:
 
+	return status;
+}
+
+NTSTATUS
+RmiSetInterruptEnable(
+	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
+	IN SPB_CONTEXT* SpbContext,
+	IN UCHAR InterruptEnable
+)
+{
+	RMI4_F01_CTRL_REGISTERS* controlF01;
+	UCHAR deviceControl = { 0 };
+	int index;
+	NTSTATUS status;
+
+	controlF01 = (RMI4_F01_CTRL_REGISTERS*)&deviceControl;
+
+	//
+	// Find RMI device control function housing sleep settings
+	// 
+	index = RmiGetFunctionIndex(
+		ControllerContext->Descriptors,
+		ControllerContext->FunctionCount,
+		RMI4_F01_RMI_DEVICE_CONTROL);
+
+	if (index == ControllerContext->FunctionCount)
+	{
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_INTERRUPT,
+			"Power change failure - RMI Function 01 missing");
+
+		status = STATUS_INVALID_DEVICE_STATE;
+		goto exit;
+	}
+
+	status = RmiChangePage(
+		ControllerContext,
+		SpbContext,
+		ControllerContext->FunctionOnPage[index]);
+
+	if (!NT_SUCCESS(status))
+	{
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_INTERRUPT,
+			"Could not change register page");
+
+		goto exit;
+	}
+
+	//
+	// Read Device Control register
+	//
+	status = SpbReadDataSynchronously(
+		SpbContext,
+		ControllerContext->Descriptors[index].ControlBase,
+		&deviceControl,
+		sizeof(deviceControl)
+	);
+
+	if (!NT_SUCCESS(status))
+	{
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_INTERRUPT,
+			"Could not read interrupt register - 0x%08lX",
+			status);
+
+		goto exit;
+	}
+
+	//
+	// Assign new sleep state
+	//
+	controlF01->InterruptEnable = InterruptEnable;
+
+	//
+	// Write setting back to the controller
+	//
+	status = SpbWriteDataSynchronously(
+		SpbContext,
+		ControllerContext->Descriptors[index].ControlBase,
+		&deviceControl,
+		sizeof(deviceControl)
+	);
+
+	if (!NT_SUCCESS(status))
+	{
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_INTERRUPT,
+			"Could not write interrupt register - %X",
+			status);
+
+		goto exit;
+	}
+
+exit:
+
+	return status;
+}
+
+UCHAR
+RmiGetFunctionInterruptMask(
+	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
+	IN int FunctionDesired
+)
+{
+	int index;
+	UCHAR interruptMask = 0;
+
+	index = RmiGetFunctionIndex(
+		ControllerContext->Descriptors,
+		ControllerContext->FunctionCount,
+		FunctionDesired);
+
+	if (index != ControllerContext->FunctionCount)
+	{
+		interruptMask = ControllerContext->FunctionInterruptMasks[index];
+	}
+
+	return interruptMask;
+}
+
+NTSTATUS
+RmiConfigureInterruptEnable(
+	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
+	IN SPB_CONTEXT* SpbContext
+)
+{
+	NTSTATUS status;
+	UCHAR InterruptEnable = 0;
+
+	int function;
+
+	for (function = 0; function < ControllerContext->FunctionCount; function++)
+	{
+		InterruptEnable |= ControllerContext->FunctionInterruptMasks[function];
+	}
+
+	status = RmiSetInterruptEnable(
+		ControllerContext,
+		SpbContext,
+		InterruptEnable
+	);
+
+	if (!NT_SUCCESS(status))
+	{
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_INTERRUPT,
+			"Could not write interrupt enable register - %X",
+			status);
+
+		goto exit;
+	}
+
+exit:
 	return status;
 }
 
@@ -414,6 +562,9 @@ RmiCheckInterrupts(
 			TRACE_INTERRUPT,
 			"Error, device status indicates chip is unconfigured");
 
+		//
+		// Initialize RMI function control registers
+		//
 		status = RmiConfigureFunctions(
 			ControllerContext,
 			SpbContext);
@@ -428,7 +579,6 @@ RmiCheckInterrupts(
 
 			goto exit;
 		}
-
 	}
 
 	if (data.InterruptStatus[0])
@@ -599,6 +749,11 @@ RmiGetFirmwareVersion(
 
 		goto exit;
 	}
+
+	Trace(
+		TRACE_LEVEL_INFORMATION,
+		TRACE_INIT,
+		"Reading RMI F01 Query registers");
 
 	//
 	// Store all F01 query registers, which contain the product ID
