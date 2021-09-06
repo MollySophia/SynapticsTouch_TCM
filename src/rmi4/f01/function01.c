@@ -830,3 +830,34 @@ RmiConvertF01ToPhysical(
 }
 
 #pragma warning(pop)
+
+NTSTATUS
+RmiServiceInterruptF01(
+	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
+	IN SPB_CONTEXT* SpbContext,
+	IN WDFQUEUE PingPongQueue
+)
+{
+	NTSTATUS status = STATUS_SUCCESS;
+
+	UNREFERENCED_PARAMETER(PingPongQueue);
+
+	status = RmiCheckInterrupts(
+		ControllerContext,
+		SpbContext,
+		&ControllerContext->InterruptStatus);
+
+	if (!NT_SUCCESS(status))
+	{
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_INTERRUPT,
+			"Error servicing interrupts - 0x%08lX",
+			status);
+
+		goto exit;
+	}
+
+exit:
+	return status;
+}

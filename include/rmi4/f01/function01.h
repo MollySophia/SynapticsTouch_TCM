@@ -136,3 +136,10 @@ RmiConfigureInterruptEnable(
     IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
     IN SPB_CONTEXT* SpbContext
 );
+
+NTSTATUS
+RmiServiceInterruptF01(
+    IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
+    IN SPB_CONTEXT* SpbContext,
+    IN WDFQUEUE PingPongQueue
+);

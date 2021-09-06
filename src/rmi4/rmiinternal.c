@@ -105,6 +105,22 @@ RmiServiceInterrupts(
 
 				break;
 			}
+			case 0x01:
+			{
+				status = RmiServiceInterruptF01(ControllerContext, SpbContext, PingPongQueue);
+				if (!NT_SUCCESS(status))
+				{
+					Trace(
+						TRACE_LEVEL_ERROR,
+						TRACE_INTERRUPT,
+						"Error servicing F01 interrupt - 0x%08lX",
+						status);
+
+					goto exit;
+				}
+
+				break;
+			}
 			default:
 			{
 				Trace(
