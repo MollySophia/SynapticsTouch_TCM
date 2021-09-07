@@ -197,7 +197,7 @@ NTSTATUS
 TchServiceButtonsInterrupts(
 	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
 	IN SPB_CONTEXT* SpbContext,
-	IN WDFQUEUE PingPongQueue
+	IN PREPORT_CONTEXT ReportContext
 )
 {
 	NTSTATUS status = STATUS_NO_DATA_DETECTED;
@@ -249,7 +249,7 @@ TchServiceButtonsInterrupts(
 			status);
 	}
 
-	status = TchSendReport(PingPongQueue, &HidReport);
+	status = TchSendReport(ReportContext->PingPongQueue, &HidReport);
 
 	if (!NT_SUCCESS(status))
 	{
@@ -270,12 +270,12 @@ NTSTATUS
 RmiServiceInterruptF1A(
 	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
 	IN SPB_CONTEXT* SpbContext,
-	IN WDFQUEUE PingPongQueue
+	IN PREPORT_CONTEXT ReportContext
 )
 {
 	NTSTATUS status = STATUS_SUCCESS;
 
-	TchServiceButtonsInterrupts(ControllerContext, SpbContext, PingPongQueue);
+	TchServiceButtonsInterrupts(ControllerContext, SpbContext, ReportContext);
 
 	return status;
 }

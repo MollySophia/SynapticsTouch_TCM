@@ -200,7 +200,7 @@ Return Value:
 {
 	RMI4_CONTROLLER_CONTEXT* context;
 	NTSTATUS status;
-
+	
 	context = ExAllocatePoolWithTag(
 		NonPagedPoolNx,
 		sizeof(RMI4_CONTROLLER_CONTEXT),
@@ -219,11 +219,6 @@ Return Value:
 
 	RtlZeroMemory(context, sizeof(RMI4_CONTROLLER_CONTEXT));
 	context->FxDevice = FxDevice;
-
-	//
-	// Get screen properties and populate context
-	//
-	TchGetScreenProperties(&context->Props);
 
 	//
 	// Get Touch settings and populate context

@@ -334,7 +334,8 @@ exit:
 NTSTATUS
 TchStandbyDevice(
    IN VOID *ControllerContext,
-   IN SPB_CONTEXT *SpbContext
+   IN SPB_CONTEXT *SpbContext,
+   IN VOID* ReportContext
    )
 /*++
 
@@ -388,17 +389,10 @@ Return Value:
     //
     // Invalidate state
     //
-    controller->TouchesReported = 0;
-    controller->TouchesTotal = 0;
-    controller->Cache.FingerSlotValid = 0;
-    controller->Cache.FingerSlotDirty = 0;
-    controller->Cache.FingerDownCount = 0;
+    ((PREPORT_CONTEXT)ReportContext)->Cache.SlotValid = 0;
+    ((PREPORT_CONTEXT)ReportContext)->Cache.SlotDirty = 0;
+    ((PREPORT_CONTEXT)ReportContext)->Cache.DownCount = 0;
 
-    controller->PensReported = 0;
-    controller->PensTotal = 0;
-    controller->PenCache.PenSlotValid = 0;
-    controller->PenCache.PenSlotDirty = 0;
-    controller->PenCache.PenDownCount = 0;
 
     WdfWaitLockRelease(controller->ControllerLock);
 

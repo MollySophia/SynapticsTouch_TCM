@@ -229,11 +229,12 @@ TchStopDevice(
     IN SPB_CONTEXT *SpbContext
     );
 
-NTSTATUS 
+NTSTATUS
 TchStandbyDevice(
-    IN VOID *ControllerContext,
-    IN SPB_CONTEXT *SpbContext
-    );
+	IN VOID* ControllerContext,
+	IN SPB_CONTEXT* SpbContext,
+	IN VOID* ReportContext
+	);
 
 NTSTATUS 
 TchWakeDevice(

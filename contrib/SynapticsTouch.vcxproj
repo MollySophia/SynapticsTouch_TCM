@@ -41,7 +41,7 @@
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">Win32</Platform>
     <SampleGuid>{25B3301B-A9D9-4EE3-8EA5-B1F1FBB3A18C}</SampleGuid>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.22000.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -415,6 +415,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\Cross Platform Shim\bitops.c" />
     <ClCompile Include="..\src\Cross Platform Shim\hweight.c" />
+    <ClCompile Include="..\src\report.c" />
     <ClCompile Include="..\src\touch_power\touch_power.c" />
     <ClCompile Include="..\src\rmi4\f12\data6\activepen.c" />
     <ClCompile Include="..\src\rmi4\f12\data1\finger.c" />
@@ -444,6 +445,7 @@
     <ClInclude Include="..\include\Cross Platform Shim\bitops.h" />
     <ClInclude Include="..\include\Cross Platform Shim\compat.h" />
     <ClInclude Include="..\include\Cross Platform Shim\hweight.h" />
+    <ClInclude Include="..\include\report.h" />
     <ClInclude Include="..\include\touch_power\public.h" />
     <ClInclude Include="..\include\touch_power\touch_power.h" />
     <ClInclude Include="..\include\rmi4\f12\data1\finger.h" />

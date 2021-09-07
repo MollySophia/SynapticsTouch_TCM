@@ -224,7 +224,7 @@ Return Value:
         fxDevice,
         &queueConfig,
         WDF_NO_OBJECT_ATTRIBUTES,
-        &devContext->PingPongQueue);
+        &devContext->ReportContext.PingPongQueue);
 
     if (!NT_SUCCESS(status))
     {

@@ -27,6 +27,7 @@
 #include <resolutions.h>
 #include <Cross Platform Shim/bitops.h>
 #include <Cross Platform Shim/hweight.h>
+#include <report.h>
 
 // Ignore warning C4152: nonstandard extension, function/data pointer conversion in expression
 #pragma warning (disable : 4152)
@@ -57,7 +58,6 @@
 #define RMI4_F55_SENSOR_TUNING            0x55
 
 #define RMI4_MAX_FUNCTIONS                10
-#define RMI4_MAX_TOUCHES                  32
 #define RMI4_MAX_BUTTONS                  3
 
 typedef struct _RMI4_FUNCTION_DESCRIPTOR
@@ -200,12 +200,6 @@ typedef struct _RMI4_F11_CTRL_REGISTERS_LOGICAL
 	UINT32 MaxFingerMovement;
 } RMI4_F11_CTRL_REGISTERS_LOGICAL;
 
-typedef struct _RMI4_DETECTED_OBJECT_POSITION
-{
-	int X;
-	int Y;
-} RMI4_DETECTED_OBJECT_POSITION;
-
 typedef struct _RMI4_DETECTED_PEN {
 	BOOLEAN Pen;
 	BOOLEAN Invert;
@@ -221,29 +215,6 @@ typedef struct _RMI4_DETECTED_BUTTONS
 {
 	BYTE ButtonStates[RMI4_MAX_BUTTONS];
 } RMI4_DETECTED_BUTTONS;
-
-typedef struct _RMI4_DETECTED_OBJECTS
-{
-	BYTE FingerStates[RMI4_MAX_TOUCHES];
-	BYTE PenStates[RMI4_MAX_TOUCHES];
-	BYTE PuckStates[RMI4_MAX_TOUCHES];
-	RMI4_DETECTED_OBJECT_POSITION Positions[RMI4_MAX_TOUCHES];
-} RMI4_DETECTED_OBJECTS;
-
-#define RMI4_FINGER_STATE_NOT_PRESENT                  0
-#define RMI4_FINGER_STATE_PRESENT_WITH_ACCURATE_POS    1
-#define RMI4_FINGER_STATE_PRESENT_WITH_INACCURATE_POS  2
-#define RMI4_FINGER_STATE_RESERVED                     3
-
-#define RMI4_PEN_STATE_NOT_PRESENT                     0
-#define RMI4_PEN_STATE_PRESENT_WITH_TIP                1
-#define RMI4_PEN_STATE_PRESENT_WITH_ERASER             2
-#define RMI4_PEN_STATE_RESERVED                        3
-
-#define RMI4_PUCK_STATE_NOT_PRESENT                  0
-#define RMI4_PUCK_STATE_PRESENT_WITH_ACCURATE_POS    1
-#define RMI4_PUCK_STATE_PRESENT_WITH_INACCURATE_POS  2
-#define RMI4_PUCK_STATE_RESERVED                     3
 
 //
 // Function $12 - 2-D Touch Sensor
@@ -286,33 +257,6 @@ typedef struct _RMI4_CONFIGURATION
 	RMI4_F11_CTRL_REGISTERS_LOGICAL TouchSettings;
 	UINT32 PepRemovesVoltageInD3;
 } RMI4_CONFIGURATION;
-
-typedef struct _RMI4_FINGER_INFO
-{
-	int x;
-	int y;
-	UCHAR fingerStatus;
-} RMI4_FINGER_INFO;
-
-typedef struct _RMI4_FINGER_CACHE
-{
-	RMI4_FINGER_INFO FingerSlot[RMI4_MAX_TOUCHES];
-	UINT32 FingerSlotValid;
-	UINT32 FingerSlotDirty;
-	int FingerDownOrder[RMI4_MAX_TOUCHES];
-	int FingerDownCount;
-	ULONG64 ScanTime;
-} RMI4_FINGER_CACHE;
-
-typedef struct _RMI4_PEN_CACHE
-{
-	RMI4_FINGER_INFO PenSlot[RMI4_MAX_TOUCHES];
-	UINT32 PenSlotValid;
-	UINT32 PenSlotDirty;
-	int PenDownOrder[RMI4_MAX_TOUCHES];
-	int PenDownCount;
-	ULONG64 ScanTime;
-} RMI4_PEN_CACHE;
 
 typedef enum _RMI4_REPORTED_BUTTON
 {
@@ -365,20 +309,10 @@ typedef struct _RMI4_CONTROLLER_CONTEXT
 	//
 	// Register configuration programmed to chip
 	//
-	TOUCH_SCREEN_PROPERTIES Props;
 	TOUCH_SCREEN_SETTINGS TouchSettings;
 	RMI4_CONFIGURATION Config;
 
-	//
-	// Current touch state
-	//
-	int TouchesReported;
-	int TouchesTotal;
-	RMI4_FINGER_CACHE Cache;
-
-	int PensReported;
-	int PensTotal;
-	RMI4_PEN_CACHE PenCache;
+	BOOLEAN ActivePenPresent;
 	BOOLEAN PenPresent;
 
 	RMI4_BUTTON_CACHE ButtonCache;
@@ -452,5 +386,5 @@ NTSTATUS
 RmiServiceInterrupts(
 	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
 	IN SPB_CONTEXT* SpbContext,
-	IN WDFQUEUE PingPongQueue
+	IN PREPORT_CONTEXT ReportContext
 );

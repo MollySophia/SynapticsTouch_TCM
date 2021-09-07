@@ -264,7 +264,7 @@ Return Value:
 
 	status = WdfRequestForwardToIoQueue(
 		Request,
-		devContext->PingPongQueue);
+		devContext->ReportContext.PingPongQueue);
 
 	if (!NT_SUCCESS(status))
 	{
@@ -291,7 +291,7 @@ Return Value:
 		RmiServiceInterrupts(
 			devContext->TouchContext,
 			&devContext->I2CContext,
-			devContext->PingPongQueue);
+			&devContext->ReportContext);
 
 		devContext->ServiceInterruptsAfterD0Entry = FALSE;
 	}
@@ -427,14 +427,14 @@ TchGenerateHidReportDescriptor(
 			if (*(hidReportDescBuffer + i + 1) == 0xFE &&
 				*(hidReportDescBuffer + i + 2) == 0xFE)
 			{
-				*(hidReportDescBuffer + i + 1) = touchContext->Props.DisplayPhysicalWidth & 0xFF;
-				*(hidReportDescBuffer + i + 2) = (touchContext->Props.DisplayPhysicalWidth >> 8) & 0xFF;
+				*(hidReportDescBuffer + i + 1) = devContext->ReportContext.Props.DisplayPhysicalWidth & 0xFF;
+				*(hidReportDescBuffer + i + 2) = (devContext->ReportContext.Props.DisplayPhysicalWidth >> 8) & 0xFF;
 			}
 			if (*(hidReportDescBuffer + i + 1) == 0xFD &&
 				*(hidReportDescBuffer + i + 2) == 0xFD)
 			{
-				*(hidReportDescBuffer + i + 1) = touchContext->Props.DisplayPhysicalHeight & 0xFF;
-				*(hidReportDescBuffer + i + 2) = (touchContext->Props.DisplayPhysicalHeight >> 8) & 0xFF;
+				*(hidReportDescBuffer + i + 1) = devContext->ReportContext.Props.DisplayPhysicalHeight & 0xFF;
+				*(hidReportDescBuffer + i + 2) = (devContext->ReportContext.Props.DisplayPhysicalHeight >> 8) & 0xFF;
 			}
 		}
 		else if (*(hidReportDescBuffer + i) == PHYSICAL_MAXIMUM_2)
@@ -442,14 +442,14 @@ TchGenerateHidReportDescriptor(
 			if (*(hidReportDescBuffer + i + 1) == 0xFE &&
 				*(hidReportDescBuffer + i + 2) == 0xFE)
 			{
-				*(hidReportDescBuffer + i + 1) = touchContext->Props.DisplayWidth10um & 0xFF;
-				*(hidReportDescBuffer + i + 2) = (touchContext->Props.DisplayWidth10um >> 8) & 0xFF;
+				*(hidReportDescBuffer + i + 1) = devContext->ReportContext.Props.DisplayWidth10um & 0xFF;
+				*(hidReportDescBuffer + i + 2) = (devContext->ReportContext.Props.DisplayWidth10um >> 8) & 0xFF;
 			}
 			if (*(hidReportDescBuffer + i + 1) == 0xFD &&
 				*(hidReportDescBuffer + i + 2) == 0xFD)
 			{
-				*(hidReportDescBuffer + i + 1) = touchContext->Props.DisplayHeight10um & 0xFF;
-				*(hidReportDescBuffer + i + 2) = (touchContext->Props.DisplayHeight10um >> 8) & 0xFF;
+				*(hidReportDescBuffer + i + 1) = devContext->ReportContext.Props.DisplayHeight10um & 0xFF;
+				*(hidReportDescBuffer + i + 2) = (devContext->ReportContext.Props.DisplayHeight10um >> 8) & 0xFF;
 			}
 		}
 	}

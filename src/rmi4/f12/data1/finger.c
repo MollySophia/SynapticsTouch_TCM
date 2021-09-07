@@ -13,7 +13,7 @@
 #include <finger.tmh>
 
 USHORT
-RmiGetFingerCountFromControllerF12(
+RmiGetObjectCountFromControllerF12(
 	IN VOID* ControllerContext
 )
 {
@@ -63,10 +63,10 @@ RmiGetFingerCountFromControllerF12(
 }
 
 NTSTATUS
-RmiGetFingerStatusFromControllerF12(
+RmiGetObjectStatusFromControllerF12(
 	IN VOID* ControllerContext,
 	IN SPB_CONTEXT* SpbContext,
-	IN RMI4_DETECTED_OBJECTS* Data
+	IN DETECTED_OBJECTS* Data
 )
 /*++
 
@@ -207,58 +207,31 @@ Return Value:
 		switch (ObjectTypeAndStatus)
 		{
 		case RMI4_F12_OBJECT_FINGER:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_PRESENT_WITH_ACCURATE_POS;
-			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
+			Data->States[i] = OBJECT_STATE_FINGER_PRESENT_WITH_ACCURATE_POS;
 			break;
 		case RMI4_F12_OBJECT_PALM:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_NOT_PRESENT;
-			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_PRESENT_WITH_ACCURATE_POS;
-
+			Data->States[i] = OBJECT_STATE_NOT_PRESENT;
 			break;
 		case RMI4_F12_OBJECT_HOVERING_FINGER:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_PRESENT_WITH_ACCURATE_POS;
-			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
+			Data->States[i] = OBJECT_STATE_FINGER_PRESENT_WITH_INACCURATE_POS;
 			break;
 		case RMI4_F12_OBJECT_GLOVED_FINGER:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_PRESENT_WITH_ACCURATE_POS;
-			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
+			Data->States[i] = OBJECT_STATE_FINGER_PRESENT_WITH_ACCURATE_POS;
 			break;
 		case RMI4_F12_OBJECT_ACTIVE_STYLUS:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_NOT_PRESENT;
-			Data->PenStates[i] = RMI4_PEN_STATE_PRESENT_WITH_TIP;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
+			Data->States[i] = OBJECT_STATE_PEN_PRESENT_WITH_TIP;
 			break;
 		case RMI4_F12_OBJECT_STYLUS:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_NOT_PRESENT;
-			Data->PenStates[i] = RMI4_PEN_STATE_PRESENT_WITH_TIP;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
+			Data->States[i] = OBJECT_STATE_PEN_PRESENT_WITH_TIP;
 			break;
 		case RMI4_F12_OBJECT_ERASER:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_NOT_PRESENT;
-			Data->PenStates[i] = RMI4_PEN_STATE_PRESENT_WITH_ERASER;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
+			Data->States[i] = OBJECT_STATE_PEN_PRESENT_WITH_ERASER;
 			break;
 		case RMI4_F12_OBJECT_NONE:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_NOT_PRESENT;
-			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
+			Data->States[i] = OBJECT_STATE_NOT_PRESENT;
 			break;
 		default:
-			Data->FingerStates[i] = RMI4_FINGER_STATE_NOT_PRESENT;
-			Data->PenStates[i] = RMI4_PEN_STATE_NOT_PRESENT;
-			Data->PuckStates[i] = RMI4_PUCK_STATE_NOT_PRESENT;
-
+			Data->States[i] = OBJECT_STATE_NOT_PRESENT;
 			break;
 		}
 

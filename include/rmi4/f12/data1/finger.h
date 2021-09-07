@@ -4,6 +4,7 @@
 #include <wdf.h>
 #define RESHUB_USE_HELPER_ROUTINES
 #include <reshub.h>
+#include <report.h>
 
 // Ignore warning C4152: nonstandard extension, function/data pointer conversion in expression
 #pragma warning (disable : 4152)
@@ -68,13 +69,13 @@ typedef struct _RMI4_F12_FINGER_3D_W_DATA_REGISTER {
 #pragma pack(pop)
 
 USHORT
-RmiGetFingerCountFromControllerF12(
+RmiGetObjectCountFromControllerF12(
 	IN VOID* ControllerContext
 );
 
 NTSTATUS
-RmiGetFingerStatusFromControllerF12(
+RmiGetObjectStatusFromControllerF12(
 	IN VOID* ControllerContext,
 	IN SPB_CONTEXT* SpbContext,
-	IN RMI4_DETECTED_OBJECTS* Data
+	IN DETECTED_OBJECTS* Data
 );

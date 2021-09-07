@@ -97,7 +97,7 @@ OnInterruptIsr(
     status = RmiServiceInterrupts(
         devContext->TouchContext,
         &devContext->I2CContext,
-        devContext->PingPongQueue);
+        &devContext->ReportContext);
 
     if (!NT_SUCCESS(status))
     {
@@ -200,7 +200,7 @@ Return Value:
 
     UNREFERENCED_PARAMETER(TargetState);
 
-    status = TchStandbyDevice(devContext->TouchContext, &devContext->I2CContext);
+    status = TchStandbyDevice(devContext->TouchContext, &devContext->I2CContext, &devContext->ReportContext);
 
     if (!NT_SUCCESS(status))
     {
@@ -434,6 +434,11 @@ OnPrepareHardware(
 
         goto exit;
     }
+
+    //
+    // Get screen properties and populate context
+    //
+    TchGetScreenProperties(&devContext->ReportContext.Props);
 
     //
     // Prepare the hardware for touch scanning

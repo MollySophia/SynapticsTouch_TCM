@@ -30,7 +30,7 @@ NTSTATUS
 RmiServiceInterrupts(
 	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
 	IN SPB_CONTEXT* SpbContext,
-	IN WDFQUEUE PingPongQueue
+	IN PREPORT_CONTEXT ReportContext
 )
 {
 	NTSTATUS status = STATUS_NO_DATA_DETECTED;
@@ -75,7 +75,7 @@ RmiServiceInterrupts(
 			{
 			case 0x12:
 			{
-				status = RmiServiceInterruptF12(ControllerContext, SpbContext, PingPongQueue);
+				status = RmiServiceInterruptF12(ControllerContext, SpbContext, ReportContext);
 				if (!NT_SUCCESS(status))
 				{
 					Trace(
@@ -91,7 +91,7 @@ RmiServiceInterrupts(
 			}
 			case 0x1A:
 			{
-				status = RmiServiceInterruptF1A(ControllerContext, SpbContext, PingPongQueue);
+				status = RmiServiceInterruptF1A(ControllerContext, SpbContext, ReportContext);
 				if (!NT_SUCCESS(status))
 				{
 					Trace(
@@ -107,7 +107,7 @@ RmiServiceInterrupts(
 			}
 			case 0x01:
 			{
-				status = RmiServiceInterruptF01(ControllerContext, SpbContext, PingPongQueue);
+				status = RmiServiceInterruptF01(ControllerContext, SpbContext, ReportContext);
 				if (!NT_SUCCESS(status))
 				{
 					Trace(
