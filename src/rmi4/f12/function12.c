@@ -911,6 +911,8 @@ TchServiceWakeUpInterrupts(
 
 	BYTE buffer[5] = { 0 };
 
+	RtlZeroMemory(buffer, 5);
+
 	status = RmiReadDataRegister(ControllerContext, SpbContext, 4, buffer, sizeof(buffer));
 
 	if (!NT_SUCCESS(status))
