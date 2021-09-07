@@ -138,6 +138,9 @@
     <ClCompile Include="..\src\rmi4\f12\data1\finger.c">
       <Filter>Source Files\rmi4\f12\data1</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\report.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\Resource.rc">
@@ -233,6 +236,9 @@
     </ClInclude>
     <ClInclude Include="..\include\rmi4\f12\data1\finger.h">
       <Filter>Header Files\rmi4\f12\data1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\report.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
