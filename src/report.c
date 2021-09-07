@@ -29,6 +29,100 @@
 #include <report.tmh>
 
 NTSTATUS
+ReportWakeup(
+	IN PREPORT_CONTEXT ReportContext
+)
+{
+	NTSTATUS status = STATUS_SUCCESS;
+	HID_INPUT_REPORT HidReport;
+
+	RtlZeroMemory(&HidReport, sizeof(HID_INPUT_REPORT));
+
+	HidReport.ReportID = REPORTID_KEYPAD;
+	HidReport.KeyReport.ACBack = ReportContext->ButtonCache.ButtonSlots[0];
+	HidReport.KeyReport.Start = ReportContext->ButtonCache.ButtonSlots[1];
+	HidReport.KeyReport.ACSearch = ReportContext->ButtonCache.ButtonSlots[2];
+	HidReport.KeyReport.SystemPowerDown = 1;
+
+	status = TchSendReport(ReportContext->PingPongQueue, &HidReport);
+
+	if (!NT_SUCCESS(status))
+	{
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_REPORTING,
+			"Error sending hid report for wake up (1) - 0x%08lX",
+			status);
+
+		goto exit;
+	}
+
+	RtlZeroMemory(&HidReport, sizeof(HID_INPUT_REPORT));
+
+	HidReport.ReportID = REPORTID_KEYPAD;
+	HidReport.KeyReport.ACBack = ReportContext->ButtonCache.ButtonSlots[0];
+	HidReport.KeyReport.Start = ReportContext->ButtonCache.ButtonSlots[1];
+	HidReport.KeyReport.ACSearch = ReportContext->ButtonCache.ButtonSlots[2];
+	HidReport.KeyReport.SystemPowerDown = 0;
+
+	status = TchSendReport(ReportContext->PingPongQueue, &HidReport);
+
+	if (!NT_SUCCESS(status))
+	{
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_REPORTING,
+			"Error sending hid report for wake up (2) - 0x%08lX",
+			status);
+
+		goto exit;
+	}
+
+exit:
+	return status;
+}
+
+NTSTATUS
+ReportKeypad(
+	IN PREPORT_CONTEXT ReportContext,
+	IN BOOLEAN Back,
+	IN BOOLEAN Start,
+	IN BOOLEAN Search
+)
+{
+	NTSTATUS status = STATUS_SUCCESS;
+	HID_INPUT_REPORT HidReport;
+
+	RtlZeroMemory(&HidReport, sizeof(HID_INPUT_REPORT));
+
+	HidReport.ReportID = REPORTID_KEYPAD;
+	HidReport.KeyReport.ACBack = Back;
+	HidReport.KeyReport.Start = Start;
+	HidReport.KeyReport.ACSearch = Search;
+
+	ReportContext->ButtonCache.ButtonSlots[0] = Back;
+	ReportContext->ButtonCache.ButtonSlots[1] = Start;
+	ReportContext->ButtonCache.ButtonSlots[2] = Search;
+	HidReport.KeyReport.SystemPowerDown = 0;
+
+	status = TchSendReport(ReportContext->PingPongQueue, &HidReport);
+
+	if (!NT_SUCCESS(status))
+	{
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_REPORTING,
+			"Error sending hid report for keypad - 0x%08lX",
+			status);
+
+		goto exit;
+	}
+
+exit:
+	return status;
+}
+
+NTSTATUS
 ReportPen(
 	IN PREPORT_CONTEXT ReportContext,
 	IN BOOLEAN TipSwitch,

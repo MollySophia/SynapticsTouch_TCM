@@ -137,7 +137,7 @@ Return Value:
 		goto exit;
 	}
 
-	for (int i = 0; i < RMI4_MAX_BUTTONS; i++)
+	for (int i = 0; i < MAX_BUTTONS; i++)
 	{
 		if (ReversedKeys)
 		{
@@ -145,51 +145,11 @@ Return Value:
 		}
 		else
 		{
-			Data->ButtonStates[i] = ((dataF1A.Raw >> (RMI4_MAX_BUTTONS - i - 1)) & 0x1);
+			Data->ButtonStates[i] = ((dataF1A.Raw >> (MAX_BUTTONS - i - 1)) & 0x1);
 		}
 	}
 
 exit:
-	return status;
-}
-
-/*++
-	Copyright (c) Microsoft Corporation. All Rights Reserved.
-	Copyright (c) Bingxing Wang. All Rights Reserved.
-	Copyright (c) LumiaWoA authors. All Rights Reserved.
-
-	Module Name:
-
-		report.c
-
-	Abstract:
-
-		Contains Synaptics specific code for reporting samples
-
-	Environment:
-
-		Kernel mode
-
-	Revision History:
-
---*/
-
-NTSTATUS
-RmiServiceButtonDataInterrupt(
-	IN RMI4_DETECTED_BUTTONS data,
-	IN PHID_KEY_REPORT HidReport
-)
-{
-	NTSTATUS status;
-
-	status = STATUS_SUCCESS;
-
-	RtlZeroMemory(HidReport, sizeof(HID_KEY_REPORT));
-
-	HidReport->ACBack = data.ButtonStates[0];
-	HidReport->Start = data.ButtonStates[1];
-	HidReport->ACSearch = data.ButtonStates[2];
-
 	return status;
 }
 
@@ -202,8 +162,6 @@ TchServiceButtonsInterrupts(
 {
 	NTSTATUS status = STATUS_NO_DATA_DETECTED;
 	RMI4_DETECTED_BUTTONS data;
-
-	HID_INPUT_REPORT HidReport;
 
 	RtlZeroMemory(&data, sizeof(RMI4_DETECTED_BUTTONS));
 
@@ -228,13 +186,11 @@ TchServiceButtonsInterrupts(
 		goto exit;
 	}
 
-	RtlZeroMemory(&HidReport, sizeof(HidReport));
-
-	HidReport.ReportID = REPORTID_KEYPAD;
-
-	status = RmiServiceButtonDataInterrupt(
-		data,
-		&(HidReport.KeyReport));
+	status = ReportKeypad(
+		ReportContext, 
+		data.ButtonStates[0], 
+		data.ButtonStates[1], 
+		data.ButtonStates[2]);
 
 	//
 	// Success indicates the report is ready to be sent, otherwise,
@@ -245,21 +201,8 @@ TchServiceButtonsInterrupts(
 		Trace(
 			TRACE_LEVEL_ERROR,
 			TRACE_INTERRUPT,
-			"Error processing button event - 0x%08lX",
+			"Error reporting button event - 0x%08lX",
 			status);
-	}
-
-	status = TchSendReport(ReportContext->PingPongQueue, &HidReport);
-
-	if (!NT_SUCCESS(status))
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INTERRUPT,
-			"Error send hid report for button event - 0x%08lX",
-			status);
-
-		goto exit;
 	}
 
 exit:

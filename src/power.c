@@ -392,6 +392,9 @@ Return Value:
     ((PREPORT_CONTEXT)ReportContext)->Cache.SlotValid = 0;
     ((PREPORT_CONTEXT)ReportContext)->Cache.SlotDirty = 0;
     ((PREPORT_CONTEXT)ReportContext)->Cache.DownCount = 0;
+    ((PREPORT_CONTEXT)ReportContext)->ButtonCache.ButtonSlots[0] = 0;
+    ((PREPORT_CONTEXT)ReportContext)->ButtonCache.ButtonSlots[1] = 0;
+    ((PREPORT_CONTEXT)ReportContext)->ButtonCache.ButtonSlots[2] = 0;
 
 
     WdfWaitLockRelease(controller->ControllerLock);

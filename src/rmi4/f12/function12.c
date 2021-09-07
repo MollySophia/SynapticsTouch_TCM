@@ -230,7 +230,7 @@ RmiConfigureControlRegisterF12(
 			"Skipped configuring $12 Control Register F12_2D_CTRL%d as the driver does not support it.",
 			RegisterIndex);
 	}
-	
+
 	return status;
 }
 
@@ -710,66 +710,6 @@ exit:
 }
 
 NTSTATUS
-RmiServiceWakeUpInterrupt(
-	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
-	IN PHID_KEY_REPORT HidReport,
-	OUT BOOLEAN* PendingEnable
-)
-/*++
-
-Routine Description:
-
-	Called when a touch interrupt needs service.
-
-Arguments:
-
-	ControllerContext - Touch controller context
-	SpbContext - A pointer to the current SPB context (I2C, etc)
-	HidReport- Buffer to fill with a hid report if touch data is available
-	InputMode - Specifies mouse, single-touch, or multi-touch reporting modes
-	PendingTouches - Notifies caller if there are more touches to report, to
-		complete reporting the full state of fingers on the screen
-
-Return Value:
-
-	NTSTATUS indicating whether or not the current hid report buffer was filled
-
-	PendingTouches also indicates whether the caller should expect more than
-		one request to be completed to indicate the full state of fingers on
-		the screen
---*/
-{
-	NTSTATUS status;
-
-	status = STATUS_SUCCESS;
-	NT_ASSERT(PendingEnable != NULL);
-	*PendingEnable = FALSE;
-
-	RtlZeroMemory(HidReport, sizeof(HID_KEY_REPORT));
-
-	//
-	// There are only 16-bits for ScanTime, truncate it
-	//
-	//HidReport->ScanTime = Cache->ScanTime & 0xFFFF;
-
-	if (ControllerContext->EscapeStrokeOnce)
-	{
-		HidReport->SystemPowerDown = 0;
-		ControllerContext->EscapeStrokeOnce = FALSE;
-		*PendingEnable = FALSE;
-		ControllerContext->GesturesEnabled = FALSE;
-	}
-	else
-	{
-		HidReport->SystemPowerDown = 1;
-		ControllerContext->EscapeStrokeOnce = TRUE;
-		*PendingEnable = TRUE;
-	}
-
-	return status;
-}
-
-NTSTATUS
 RmiServiceActivePenDataInterrupt(
 	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
 	IN RMI4_DETECTED_PEN data,
@@ -960,9 +900,6 @@ TchServiceWakeUpInterrupts(
 {
 	NTSTATUS status;
 
-	HID_INPUT_REPORT HidReport;
-	BOOLEAN PendingEnable = TRUE;
-
 	UNREFERENCED_PARAMETER(SpbContext);
 
 	status = STATUS_NO_DATA_DETECTED;
@@ -972,44 +909,19 @@ TchServiceWakeUpInterrupts(
 		goto exit;
 	}
 
-	while (PendingEnable == TRUE)
+	ControllerContext->GesturesEnabled = FALSE;
+
+	status = ReportWakeup(ReportContext);
+
+	if (!NT_SUCCESS(status))
 	{
-		RtlZeroMemory(&HidReport, sizeof(HidReport));
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_INTERRUPT,
+			"Error reporting wake up event - 0x%08lX",
+			status);
 
-		HidReport.ReportID = REPORTID_KEYPAD;
-
-		status = RmiServiceWakeUpInterrupt(
-			ControllerContext,
-			&(HidReport.KeyReport),
-			&PendingEnable);
-
-		//
-		// Success indicates the report is ready to be sent, otherwise,
-		// continue to service interrupts.
-		//
-		if (!NT_SUCCESS(status))
-		{
-			Trace(
-				TRACE_LEVEL_ERROR,
-				TRACE_INTERRUPT,
-				"Error processing wake up event - 0x%08lX",
-				status);
-
-			goto exit;
-		}
-
-		status = TchSendReport(ReportContext->PingPongQueue, &HidReport);
-
-		if (!NT_SUCCESS(status))
-		{
-			Trace(
-				TRACE_LEVEL_ERROR,
-				TRACE_INTERRUPT,
-				"Error send hid report for wake up event - 0x%08lX",
-				status);
-
-			goto exit;
-		}
+		goto exit;
 	}
 
 exit:

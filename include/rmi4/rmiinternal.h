@@ -58,7 +58,6 @@
 #define RMI4_F55_SENSOR_TUNING            0x55
 
 #define RMI4_MAX_FUNCTIONS                10
-#define RMI4_MAX_BUTTONS                  3
 
 typedef struct _RMI4_FUNCTION_DESCRIPTOR
 {
@@ -213,7 +212,7 @@ typedef struct _RMI4_DETECTED_PEN {
 
 typedef struct _RMI4_DETECTED_BUTTONS
 {
-	BYTE ButtonStates[RMI4_MAX_BUTTONS];
+	BYTE ButtonStates[MAX_BUTTONS];
 } RMI4_DETECTED_BUTTONS;
 
 //
@@ -273,11 +272,6 @@ typedef struct _RMI4_BUTTON_INFO
 	UCHAR buttonStatus;
 } RMI4_BUTTON_INFO;
 
-typedef struct _RMI4_BUTTON_CACHE
-{
-	BOOLEAN ButtonSlots[RMI4_MAX_BUTTONS];
-} RMI4_BUTTON_CACHE;
-
 typedef struct _RMI4_CONTROLLER_CONTEXT
 {
 	WDFDEVICE FxDevice;
@@ -315,8 +309,6 @@ typedef struct _RMI4_CONTROLLER_CONTEXT
 	BOOLEAN ActivePenPresent;
 	BOOLEAN PenPresent;
 
-	RMI4_BUTTON_CACHE ButtonCache;
-
 	//
 	// RMI4 F12 state
 	//
@@ -331,7 +323,6 @@ typedef struct _RMI4_CONTROLLER_CONTEXT
 	BYTE MaxFingers;
 
 	BOOLEAN GesturesEnabled;
-	BOOLEAN EscapeStrokeOnce;
 } RMI4_CONTROLLER_CONTEXT;
 
 NTSTATUS

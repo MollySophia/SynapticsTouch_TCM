@@ -29,6 +29,7 @@
 #include <spb.h>
 
 #define MAX_TOUCHES                32
+#define MAX_BUTTONS                3
 
 typedef struct _OBJECT_INFO
 {
@@ -69,13 +70,32 @@ typedef struct _DETECTED_OBJECTS
 	DETECTED_OBJECT_POSITION Positions[MAX_TOUCHES];
 } DETECTED_OBJECTS;
 
+typedef struct _BUTTON_CACHE
+{
+	BOOLEAN ButtonSlots[MAX_BUTTONS];
+} BUTTON_CACHE;
+
 typedef struct _REPORT_CONTEXT
 {
+	BUTTON_CACHE ButtonCache;
 	BOOLEAN PenPresent;
 	OBJECT_CACHE Cache;
 	TOUCH_SCREEN_PROPERTIES Props;
 	WDFQUEUE PingPongQueue;
 } REPORT_CONTEXT, * PREPORT_CONTEXT;
+
+NTSTATUS
+ReportWakeup(
+	IN PREPORT_CONTEXT ReportContext
+);
+
+NTSTATUS
+ReportKeypad(
+	IN PREPORT_CONTEXT ReportContext,
+	IN BOOLEAN Back,
+	IN BOOLEAN Start,
+	IN BOOLEAN Search
+);
 
 NTSTATUS
 ReportPen(
