@@ -909,19 +909,37 @@ TchServiceWakeUpInterrupts(
 		goto exit;
 	}
 
-	ControllerContext->GesturesEnabled = FALSE;
+	BYTE buffer[5] = { 0 };
 
-	status = ReportWakeup(ReportContext);
+	status = RmiReadDataRegister(ControllerContext, SpbContext, 4, buffer, sizeof(buffer));
 
 	if (!NT_SUCCESS(status))
 	{
 		Trace(
 			TRACE_LEVEL_ERROR,
 			TRACE_INTERRUPT,
-			"Error reporting wake up event - 0x%08lX",
+			"Error reading gesture data register - 0x%08lX",
 			status);
 
 		goto exit;
+	}
+
+	if (buffer[0] == 0x03) // Double Tap
+	{
+		ControllerContext->GesturesEnabled = FALSE;
+
+		status = ReportWakeup(ReportContext);
+
+		if (!NT_SUCCESS(status))
+		{
+			Trace(
+				TRACE_LEVEL_ERROR,
+				TRACE_INTERRUPT,
+				"Error reporting wake up event - 0x%08lX",
+				status);
+
+			goto exit;
+		}
 	}
 
 exit:

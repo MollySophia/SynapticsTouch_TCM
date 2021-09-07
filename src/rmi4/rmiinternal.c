@@ -475,6 +475,37 @@ RmiBuildFunctionsTable(
 		//
 		else
 		{
+			for (int i = 0; i < function; i++)
+			{
+				if (ControllerContext->Descriptors[i].Number == Descriptor.Number)
+				{
+					Trace(
+						TRACE_LEVEL_ERROR,
+						TRACE_INIT,
+						"Error, encountered a function already. Device flash corrupted or counterfeit IC?");
+
+					page++;
+					address = RMI4_FIRST_FUNCTION_ADDRESS;
+
+					status = RmiChangePage(
+						ControllerContext,
+						SpbContext,
+						page);
+
+					if (!NT_SUCCESS(status))
+					{
+						Trace(
+							TRACE_LEVEL_ERROR,
+							TRACE_INIT,
+							"RmiBuildFunctionsTable: Error attempting to change page - 0x%08lX",
+							status);
+						goto exit;
+					}
+
+					continue;
+				}
+			}
+
 			ControllerContext->FunctionOnPage[function] = page;
 			ControllerContext->FunctionInterruptMasks[function] = RmiGetInterruptMask(
 				Descriptor.VersionIrq.IrqCount,
@@ -523,8 +554,9 @@ RmiBuildFunctionsTable(
 			"Error, encountered more than %d functions, must extend driver",
 			RMI4_MAX_FUNCTIONS);
 
-		status = STATUS_INVALID_DEVICE_STATE;
-		goto exit;
+		// Workaround for counterfeit ICs
+		//status = STATUS_INVALID_DEVICE_STATE;
+		//goto exit;
 	}
 	if (address <= 0)
 	{
@@ -534,8 +566,9 @@ RmiBuildFunctionsTable(
 			"Error, did not find terminator function 0, address down to %d",
 			address);
 
-		status = STATUS_INVALID_DEVICE_STATE;
-		goto exit;
+		// Workaround for counterfeit ICs
+		//status = STATUS_INVALID_DEVICE_STATE;
+		//goto exit;
 	}
 
 	//
