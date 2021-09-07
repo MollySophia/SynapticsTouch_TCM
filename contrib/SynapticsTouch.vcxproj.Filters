@@ -43,11 +43,29 @@
     <Filter Include="Header Files\rmi4\f1a">
       <UniqueIdentifier>{55b3667f-7236-4ab2-8d47-079512a3f281}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\interfaces">
+    <Filter Include="Source Files\selftest">
       <UniqueIdentifier>{bbeaca4f-005a-4329-b642-6946e7fce119}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\interfaces">
+    <Filter Include="Header Files\selftest">
       <UniqueIdentifier>{78f7e746-a2d4-42d7-8a03-0e5247e4883d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\touch_power">
+      <UniqueIdentifier>{d3ddf542-5d45-45a5-ae69-536980bbcada}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\touch_power">
+      <UniqueIdentifier>{48991f5f-ce72-428a-bb02-7ff9f171fa57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\rmi4\f12\data1">
+      <UniqueIdentifier>{9c1492b3-f082-4190-88f4-3a1841fd1793}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\rmi4\f12\data6">
+      <UniqueIdentifier>{d5075fbd-3215-4cb4-9c56-9c80fd41094c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\rmi4\f12\data1">
+      <UniqueIdentifier>{103f2f71-e788-4ba1-a521-5340c541fc06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\rmi4\f12\data6">
+      <UniqueIdentifier>{f1a329b6-5dd1-49a8-9eb9-91a39368ee6b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -99,26 +117,26 @@
     <ClCompile Include="..\src\Cross Platform Shim\hweight.c">
       <Filter>Source Files\Cross Platform Shim</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\rmi4\f12\activepen.c">
-      <Filter>Source Files\rmi4\f12</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\rmi4\f12\finger.c">
-      <Filter>Source Files\rmi4\f12</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\rmi4\rmiregisters.c">
       <Filter>Source Files\rmi4</Filter>
     </ClCompile>
     <ClCompile Include="..\src\rmi4\f12\registers.c">
       <Filter>Source Files\rmi4\f12</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\enoselftest.c">
-      <Filter>Source Files\interfaces</Filter>
+    <ClCompile Include="..\src\selftest\enoselftest.c">
+      <Filter>Source Files\selftest</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\selftest.c">
-      <Filter>Source Files\interfaces</Filter>
+    <ClCompile Include="..\src\selftest\selftest.c">
+      <Filter>Source Files\selftest</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\touchpower.c">
-      <Filter>Source Files\interfaces</Filter>
+    <ClCompile Include="..\src\touch_power\touch_power.c">
+      <Filter>Source Files\touch_power</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rmi4\f12\data6\activepen.c">
+      <Filter>Source Files\rmi4\f12\data6</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rmi4\f12\data1\finger.c">
+      <Filter>Source Files\rmi4\f12\data1</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -192,26 +210,29 @@
     <ClInclude Include="..\include\Cross Platform Shim\hweight.h">
       <Filter>Header Files\Cross Platform Shim</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\rmi4\f12\activepen.h">
-      <Filter>Header Files\rmi4\f12</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rmi4\f12\finger.h">
-      <Filter>Header Files\rmi4\f12</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\rmi4\rmiregisters.h">
       <Filter>Header Files\rmi4</Filter>
     </ClInclude>
     <ClInclude Include="..\include\rmi4\f12\registers.h">
       <Filter>Header Files\rmi4\f12</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\selftest.h">
-      <Filter>Header Files\interfaces</Filter>
+    <ClInclude Include="..\include\selftest\selftest.h">
+      <Filter>Header Files\selftest</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\enoselftest.h">
-      <Filter>Header Files\interfaces</Filter>
+    <ClInclude Include="..\include\selftest\enoselftest.h">
+      <Filter>Header Files\selftest</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\touchpower.h">
-      <Filter>Header Files\interfaces</Filter>
+    <ClInclude Include="..\include\touch_power\touch_power.h">
+      <Filter>Header Files\touch_power</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\touch_power\public.h">
+      <Filter>Header Files\touch_power</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rmi4\f12\data6\activepen.h">
+      <Filter>Header Files\rmi4\f12\data6</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rmi4\f12\data1\finger.h">
+      <Filter>Header Files\rmi4\f12\data1</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
