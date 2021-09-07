@@ -64,20 +64,6 @@ RmiSetReportingConfigurationF12(
 );
 
 NTSTATUS
-RmiGetSupportedControlRegistersF12(
-    IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
-    IN SPB_CONTEXT* SpbContext,
-    OUT PRMI4_F12_QUERY_5_REGISTER ControlRegisterData
-);
-
-NTSTATUS
-RmiGetSupportedDataRegistersF12(
-    IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
-    IN SPB_CONTEXT* SpbContext,
-    OUT PRMI4_F12_QUERY_8_REGISTER ControlRegisterData
-);
-
-NTSTATUS
 RmiServiceInterruptF12(
     IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
     IN SPB_CONTEXT* SpbContext,

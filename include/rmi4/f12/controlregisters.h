@@ -1,22 +1,22 @@
 /*++
-    Copyright (c) Microsoft Corporation. All Rights Reserved. 
-    Copyright (c) LumiaWOA Authors. All Rights Reserved. 
-    Sample code. Dealpoint ID #843729.
+	Copyright (c) Microsoft Corporation. All Rights Reserved.
+	Copyright (c) LumiaWOA Authors. All Rights Reserved.
+	Sample code. Dealpoint ID #843729.
 
-    Module Name:
+	Module Name:
 
-        controlregisters.h
+		controlregisters.h
 
-    Abstract:
+	Abstract:
 
-        Contains common types and definitions used internally
-        by the F12 digitizer function.
+		Contains common types and definitions used internally
+		by the F12 digitizer function.
 
-    Environment:
+	Environment:
 
-        Kernel mode
+		Kernel mode
 
-    Revision History:
+	Revision History:
 
 --*/
 
@@ -24,6 +24,8 @@
 
 #include <wdm.h>
 #include <wdf.h>
+#define RESHUB_USE_HELPER_ROUTINES
+#include <reshub.h>
 
 // Ignore warning C4152: nonstandard extension, function/data pointer conversion in expression
 #pragma warning (disable : 4152)
@@ -56,6 +58,24 @@
 #define F12_2D_CTRL23   23
 #define F12_2D_CTRL26   26
 #define F12_2D_CTRL40   40
+
+#pragma pack(push)
+#pragma pack(1)
+typedef struct _RMI4_F12_QUERY_0_REGISTER {
+	BYTE HasRegisterDescriptors : 1;
+	BYTE HasClosedCover : 1;
+	BYTE HasFastGloveDetect : 1;
+	BYTE HasDribble : 1;
+	BYTE Has4Point4JitterFilterStrength : 1;
+	BYTE Reserved0 : 3;
+
+	BYTE MaxNumTemplates : 4;
+	BYTE Reserved1 : 4;
+
+	BYTE TemplateSize_LSB;
+	BYTE TemplateSize_MSB;
+} RMI4_F12_QUERY_0_REGISTER, * PRMI4_F12_QUERY_0_REGISTER;
+#pragma pack(pop)
 
 struct synaptics_rmi4_f12_ctrl_8 {
 	union {
@@ -188,8 +208,8 @@ struct synaptics_rmi4_f12_ctrl_18 {
 #pragma pack(1)
 typedef enum _RMI4_F12_REPORTING_FLAGS
 {
-	RMI4_F12_REPORTING_CONTINUOUS_MODE     = 0,
-	RMI4_F12_REPORTING_REDUCED_MODE        = 1,
+	RMI4_F12_REPORTING_CONTINUOUS_MODE = 0,
+	RMI4_F12_REPORTING_REDUCED_MODE = 1,
 	RMI4_F12_REPORTING_WAKEUP_GESTURE_MODE = 2,
 } RMI4_F12_REPORTING_FLAGS;
 #pragma pack(pop)
@@ -210,148 +230,6 @@ typedef enum _RMI4_F12_OBJECT_TYPE {
 	RMI4_F12_OBJECT_ERASER = (BYTE)0x0C,
 	RMI4_F12_OBJECT_SMALL_OBJECT = (BYTE)0x0D,
 } RMI4_F12_OBJECT_TYPE;
-
-typedef struct _RMI4_F12_QUERY_5_REGISTER {
-	union {
-		BYTE Data[7];
-		struct {
-			BYTE Size;
-#pragma pack(push)
-#pragma pack(1)
-			struct {
-				BYTE ctrl0_is_present : 1;
-				BYTE ctrl1_is_present : 1;
-				BYTE ctrl2_is_present : 1;
-				BYTE ctrl3_is_present : 1;
-				BYTE ctrl4_is_present : 1;
-				BYTE ctrl5_is_present : 1;
-				BYTE ctrl6_is_present : 1;
-				BYTE ctrl7_is_present : 1;
-			};
-#pragma pack(pop)
-
-#pragma pack(push)
-#pragma pack(1)
-			struct {
-				BYTE ctrl8_is_present : 1;
-				BYTE ctrl9_is_present : 1;
-				BYTE ctrl10_is_present : 1;
-				BYTE ctrl11_is_present : 1;
-				BYTE ctrl12_is_present : 1;
-				BYTE ctrl13_is_present : 1;
-				BYTE ctrl14_is_present : 1;
-				BYTE ctrl15_is_present : 1;
-			};
-#pragma pack(pop)
-
-#pragma pack(push)
-#pragma pack(1)
-			struct {
-				BYTE ctrl16_is_present : 1;
-				BYTE ctrl17_is_present : 1;
-				BYTE ctrl18_is_present : 1;
-				BYTE ctrl19_is_present : 1;
-				BYTE ctrl20_is_present : 1;
-				BYTE ctrl21_is_present : 1;
-				BYTE ctrl22_is_present : 1;
-				BYTE ctrl23_is_present : 1;
-			};
-#pragma pack(pop)
-
-#pragma pack(push)
-#pragma pack(1)
-			struct {
-				BYTE ctrl24_is_present : 1;
-				BYTE ctrl25_is_present : 1;
-				BYTE ctrl26_is_present : 1;
-				BYTE ctrl27_is_present : 1;
-				BYTE ctrl28_is_present : 1;
-				BYTE ctrl29_is_present : 1;
-				BYTE ctrl30_is_present : 1;
-				BYTE ctrl31_is_present : 1;
-			};
-#pragma pack(pop)
-
-#pragma pack(push)
-#pragma pack(1)
-			struct {
-				BYTE ctrl32_is_present : 1;
-				BYTE ctrl33_is_present : 1;
-				BYTE ctrl34_is_present : 1;
-				BYTE ctrl35_is_present : 1;
-				BYTE ctrl36_is_present : 1;
-				BYTE ctrl37_is_present : 1;
-				BYTE ctrl38_is_present : 1;
-				BYTE ctrl39_is_present : 1;
-			};
-#pragma pack(pop)
-
-#pragma pack(push)
-#pragma pack(1)
-			struct {
-				BYTE ctrl40_is_present : 1;
-				BYTE ctrl41_is_present : 1;
-				BYTE ctrl42_is_present : 1;
-				BYTE ctrl43_is_present : 1;
-				BYTE ctrl44_is_present : 1;
-				BYTE ctrl45_is_present : 1;
-				BYTE ctrl46_is_present : 1;
-				BYTE ctrl47_is_present : 1;
-			};
-#pragma pack(pop)
-		};
-	};
-} RMI4_F12_QUERY_5_REGISTER, * PRMI4_F12_QUERY_5_REGISTER;
-
-typedef struct _RMI4_F12_QUERY_8_REGISTER {
-	union {
-		BYTE Data[4];
-		struct {
-			BYTE Size;
-#pragma pack(push)
-#pragma pack(1)
-			struct {
-				BYTE data0_is_present : 1;
-				BYTE data1_is_present : 1;
-				BYTE data2_is_present : 1;
-				BYTE data3_is_present : 1;
-				BYTE data4_is_present : 1;
-				BYTE data5_is_present : 1;
-				BYTE data6_is_present : 1;
-				BYTE data7_is_present : 1;
-			};
-#pragma pack(pop)
-
-#pragma pack(push)
-#pragma pack(1)
-			struct {
-				BYTE data8_is_present : 1;
-				BYTE data9_is_present : 1;
-				BYTE data10_is_present : 1;
-				BYTE data11_is_present : 1;
-				BYTE data12_is_present : 1;
-				BYTE data13_is_present : 1;
-				BYTE data14_is_present : 1;
-				BYTE data15_is_present : 1;
-			};
-#pragma pack(pop)
-
-#pragma pack(push)
-#pragma pack(1)
-			struct {
-				BYTE data16_is_present : 1;
-				BYTE data17_is_present : 1;
-				BYTE data18_is_present : 1;
-				BYTE data19_is_present : 1;
-				BYTE data20_is_present : 1;
-				BYTE data21_is_present : 1;
-				BYTE data22_is_present : 1;
-				BYTE data23_is_present : 1;
-			};
-#pragma pack(pop)
-		};
-	};
-} RMI4_F12_QUERY_8_REGISTER, * PRMI4_F12_QUERY_8_REGISTER;
 
 typedef struct _RMI4_F12_FINGER_REPORT_REGISTER
 {

@@ -26,7 +26,7 @@
 #include <rmi4\f01\function01.h>
 #include <rmi4\f12\function12.h>
 #include <internal.h>
-#include <touchpower.h>
+#include <touch_power\touch_power.h>
 #include <power.tmh>
 
 NTSTATUS

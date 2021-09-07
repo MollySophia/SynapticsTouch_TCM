@@ -25,8 +25,8 @@
 #include <device.h>
 #include <hid.h>
 #include <queue.h>
-#include <selftest.h>
-#include <enoselftest.h>
+#include <selftest\selftest.h>
+#include <selftest\enoselftest.h>
 #include <driver.h>
 #include <driver.tmh>
 

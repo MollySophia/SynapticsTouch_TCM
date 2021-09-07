@@ -8,7 +8,7 @@
 #include <spb.h>
 #include <rmi4\rmiinternal.h>
 #include <rmi4\f12\controlregisters.h>
-#include <rmi4\f12\activepen.h>
+#include <rmi4\f12\data6\activepen.h>
 #include <activepen.tmh>
 
 NTSTATUS

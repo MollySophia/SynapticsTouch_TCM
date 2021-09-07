@@ -312,6 +312,15 @@ RmiConfigureFunctions(
 
 		switch (Number)
 		{
+		case 0x01:
+		{
+			status = RmiConfigureF01(
+				ControllerContext,
+				SpbContext
+			);
+
+			break;
+		}
 		case 0x12:
 		{
 			status = RmiConfigureF12(
@@ -324,15 +333,6 @@ RmiConfigureFunctions(
 		case 0x1A:
 		{
 			status = RmiConfigureF1A(
-				ControllerContext,
-				SpbContext
-			);
-
-			break;
-		}
-		case 0x01:
-		{
-			status = RmiConfigureF01(
 				ControllerContext,
 				SpbContext
 			);

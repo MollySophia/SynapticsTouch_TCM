@@ -59,44 +59,59 @@ RmiReadFunctionControlRegister(
 		goto exit;
 	}
 
-	indexCtrl = RmiGetRegisterIndex(&RegisterDescriptor, ControlRegister);
-
-	if (indexCtrl == RegisterDescriptor.NumRegisters)
+	if (ControllerContext->HasRegisterDescriptors)
 	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Cannot find F%x_CTRL%d offset",
-			FunctionDesired,
-			ControlRegister);
+		indexCtrl = RmiGetRegisterIndex(&RegisterDescriptor, ControlRegister);
 
-		status = STATUS_INVALID_DEVICE_STATE;
-		goto exit;
+		if (indexCtrl == RegisterDescriptor.NumRegisters)
+		{
+			Trace(
+				TRACE_LEVEL_ERROR,
+				TRACE_INIT,
+				"Cannot find F%x_CTRL%d offset",
+				FunctionDesired,
+				ControlRegister);
+
+			status = STATUS_INVALID_DEVICE_STATE;
+			goto exit;
+		}
+
+		if (RegisterDescriptor.Registers[indexCtrl].RegisterSize < BufferLength)
+		{
+			Trace(
+				TRACE_LEVEL_ERROR,
+				TRACE_INIT,
+				"Unexpected F%x_CTRL%d size: %d",
+				FunctionDesired,
+				ControlRegister,
+				RegisterDescriptor.Registers[indexCtrl].RegisterSize);
+
+			//status = STATUS_INVALID_DEVICE_STATE;
+			//goto exit;
+		}
+
+		//
+		// Read Device Control register
+		//
+		status = SpbReadDataSynchronously(
+			SpbContext,
+			ControllerContext->Descriptors[index].ControlBase + indexCtrl,
+			Buffer,
+			min(RegisterDescriptor.Registers[indexCtrl].RegisterSize, BufferLength)
+		);
 	}
-
-	if (RegisterDescriptor.Registers[indexCtrl].RegisterSize < BufferLength)
+	else
 	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Unexpected F%x_CTRL%d size: %d",
-			FunctionDesired,
-			ControlRegister,
-			RegisterDescriptor.Registers[indexCtrl].RegisterSize);
-
-		//status = STATUS_INVALID_DEVICE_STATE;
-		//goto exit;
+		//
+		// Read Device Control register
+		//
+		status = SpbReadDataSynchronously(
+			SpbContext,
+			ControllerContext->Descriptors[index].ControlBase,
+			Buffer,
+			BufferLength
+		);
 	}
-
-	//
-	// Read Device Control register
-	//
-	status = SpbReadDataSynchronously(
-		SpbContext,
-		ControllerContext->Descriptors[index].ControlBase + indexCtrl,
-		Buffer,
-		min(RegisterDescriptor.Registers[indexCtrl].RegisterSize, BufferLength)
-	);
 
 	if (!NT_SUCCESS(status))
 	{
@@ -167,44 +182,59 @@ RmiReadFunctionDataRegister(
 		goto exit;
 	}
 
-	indexData = RmiGetRegisterIndex(&RegisterDescriptor, DataRegister);
-
-	if (indexData == RegisterDescriptor.NumRegisters)
+	if (ControllerContext->HasRegisterDescriptors)
 	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Cannot find F%x_DATA%d offset",
-			FunctionDesired,
-			DataRegister);
+		indexData = RmiGetRegisterIndex(&RegisterDescriptor, DataRegister);
 
-		status = STATUS_INVALID_DEVICE_STATE;
-		goto exit;
+		if (indexData == RegisterDescriptor.NumRegisters)
+		{
+			Trace(
+				TRACE_LEVEL_ERROR,
+				TRACE_INIT,
+				"Cannot find F%x_DATA%d offset",
+				FunctionDesired,
+				DataRegister);
+
+			status = STATUS_INVALID_DEVICE_STATE;
+			goto exit;
+		}
+
+		if (RegisterDescriptor.Registers[indexData].RegisterSize < BufferLength)
+		{
+			Trace(
+				TRACE_LEVEL_ERROR,
+				TRACE_INIT,
+				"Unexpected F%x_DATA%d size: %d",
+				FunctionDesired,
+				DataRegister,
+				RegisterDescriptor.Registers[indexData].RegisterSize);
+
+			//status = STATUS_INVALID_DEVICE_STATE;
+			//goto exit;
+		}
+
+		//
+		// Read Device Control register
+		//
+		status = SpbReadDataSynchronously(
+			SpbContext,
+			ControllerContext->Descriptors[index].DataBase + indexData,
+			Buffer,
+			min(RegisterDescriptor.Registers[indexData].RegisterSize, BufferLength)
+		);
 	}
-
-	if (RegisterDescriptor.Registers[indexData].RegisterSize < BufferLength)
+	else
 	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Unexpected F%x_DATA%d size: %d",
-			FunctionDesired,
-			DataRegister,
-			RegisterDescriptor.Registers[indexData].RegisterSize);
-
-		//status = STATUS_INVALID_DEVICE_STATE;
-		//goto exit;
+		//
+		// Read Device Control register
+		//
+		status = SpbReadDataSynchronously(
+			SpbContext,
+			ControllerContext->Descriptors[index].DataBase,
+			Buffer,
+			BufferLength
+		);
 	}
-
-	//
-	// Read Device Control register
-	//
-	status = SpbReadDataSynchronously(
-		SpbContext,
-		ControllerContext->Descriptors[index].DataBase + indexData,
-		Buffer,
-		min(RegisterDescriptor.Registers[indexData].RegisterSize, BufferLength)
-	);
 
 	if (!NT_SUCCESS(status))
 	{
@@ -273,44 +303,59 @@ RmiWriteFunctionControlRegister(
 		goto exit;
 	}
 
-	indexCtrl = RmiGetRegisterIndex(&RegisterDescriptor, ControlRegister);
-
-	if (indexCtrl == RegisterDescriptor.NumRegisters)
+	if (ControllerContext->HasRegisterDescriptors)
 	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Cannot find F%x_CTRL%d offset",
-			FunctionDesired,
-			ControlRegister);
+		indexCtrl = RmiGetRegisterIndex(&RegisterDescriptor, ControlRegister);
 
-		status = STATUS_INVALID_DEVICE_STATE;
-		goto exit;
+		if (indexCtrl == RegisterDescriptor.NumRegisters)
+		{
+			Trace(
+				TRACE_LEVEL_ERROR,
+				TRACE_INIT,
+				"Cannot find F%x_CTRL%d offset",
+				FunctionDesired,
+				ControlRegister);
+
+			status = STATUS_INVALID_DEVICE_STATE;
+			goto exit;
+		}
+
+		if (RegisterDescriptor.Registers[indexCtrl].RegisterSize < BufferLength)
+		{
+			Trace(
+				TRACE_LEVEL_ERROR,
+				TRACE_INIT,
+				"Unexpected F%x_CTRL%d size: %d",
+				FunctionDesired,
+				ControlRegister,
+				RegisterDescriptor.Registers[indexCtrl].RegisterSize);
+
+			//status = STATUS_INVALID_DEVICE_STATE;
+			//goto exit;
+		}
+
+		//
+		// Write setting to the controller
+		//
+		status = SpbWriteDataSynchronously(
+			SpbContext,
+			ControllerContext->Descriptors[index].ControlBase + indexCtrl,
+			Buffer,
+			min(RegisterDescriptor.Registers[indexCtrl].RegisterSize, BufferLength)
+		);
 	}
-
-	if (RegisterDescriptor.Registers[indexCtrl].RegisterSize < BufferLength)
+	else
 	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Unexpected F%x_CTRL%d size: %d",
-			FunctionDesired,
-			ControlRegister,
-			RegisterDescriptor.Registers[indexCtrl].RegisterSize);
-
-		//status = STATUS_INVALID_DEVICE_STATE;
-		//goto exit;
+		//
+		// Write setting to the controller
+		//
+		status = SpbWriteDataSynchronously(
+			SpbContext,
+			ControllerContext->Descriptors[index].ControlBase,
+			Buffer,
+			BufferLength
+		);
 	}
-
-	//
-	// Write setting to the controller
-	//
-	status = SpbWriteDataSynchronously(
-		SpbContext,
-		ControllerContext->Descriptors[index].ControlBase + indexCtrl,
-		Buffer,
-		min(RegisterDescriptor.Registers[indexCtrl].RegisterSize, BufferLength)
-	);
 
 	if (!NT_SUCCESS(status))
 	{
@@ -326,6 +371,5 @@ RmiWriteFunctionControlRegister(
 	}
 
 exit:
-
 	return status;
 }

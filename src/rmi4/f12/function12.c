@@ -11,8 +11,8 @@
 #include <rmi4\f12\registers.h>
 #include <rmi4\f12\controlregisters.h>
 #include <rmi4\f12\function12.h>
-#include <rmi4\f12\activepen.h>
-#include <rmi4\f12\finger.h>
+#include <rmi4\f12\data6\activepen.h>
+#include <rmi4\f12\data1\finger.h>
 #include <function12.tmh>
 
 NTSTATUS
@@ -304,15 +304,13 @@ exit:
 }
 
 NTSTATUS
-RmiConfigureControlRegistersF12(
+RmiDiscoverControlRegistersF12(
 	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
 	IN SPB_CONTEXT* SpbContext
 )
 {
-	NTSTATUS status;
+	NTSTATUS status = STATUS_SUCCESS;
 	int index;
-	RMI4_F12_QUERY_5_REGISTER Query5Reg = { 0 };
-	RtlZeroMemory(&Query5Reg, sizeof(RMI4_F12_QUERY_5_REGISTER));
 
 	/*
 		Lumia 950s (Retail) should have
@@ -345,21 +343,6 @@ RmiConfigureControlRegistersF12(
 		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL40 at 0x2D with a size of 16
 	*/
 
-	status = RmiGetSupportedControlRegistersF12(
-		ControllerContext,
-		SpbContext,
-		&Query5Reg);
-
-	if (!NT_SUCCESS(status)) {
-
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Failed to read the Query 5 Register - 0x%08lX",
-			status);
-		goto exit;
-	}
-
 	//
 	// Find RMI F12 function
 	//
@@ -379,41 +362,36 @@ RmiConfigureControlRegistersF12(
 		goto exit;
 	}
 
-	for (USHORT i = 0; i < (sizeof(Query5Reg.Data) - 1) * 8; i++)
+	PRMI_REGISTER_DESC_ITEM item;
+	for (int i = 0; i < ControllerContext->F12ControlRegDesc.NumRegisters; i++)
 	{
-		DWORD RegisterMask = (1 << (i % 8));
-		DWORD DataIndex = (i - (i % 8)) / 8 + 1;
+		item = &ControllerContext->F12ControlRegDesc.Registers[i];
 
-		if ((Query5Reg.Data[DataIndex] & RegisterMask) == RegisterMask)
-		{
-			UINT8 indexCtrl = RmiGetRegisterIndex(&ControllerContext->F12ControlRegDesc, i);
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_INIT,
+			"Discovered $12 Control Register F12_2D_CTRL%d at 0x%X with a size of %d",
+			item->Register,
+			ControllerContext->Descriptors[index].ControlBase + i,
+			item->RegisterSize
+		);
+
+		status = RmiConfigureControlRegisterF12(
+			ControllerContext,
+			SpbContext,
+			item->Register
+		);
+
+		if (!NT_SUCCESS(status)) {
 
 			Trace(
 				TRACE_LEVEL_ERROR,
 				TRACE_INIT,
-				"Discovered $12 Control Register F12_2D_CTRL%d at 0x%X with a size of %d",
-				i,
-				ControllerContext->Descriptors[index].ControlBase + indexCtrl,
-				ControllerContext->F12ControlRegDesc.Registers[indexCtrl].RegisterSize
-			);
-
-			status = RmiConfigureControlRegisterF12(
-				ControllerContext,
-				SpbContext,
-				i
-			);
-
-			if (!NT_SUCCESS(status)) {
-
-				Trace(
-					TRACE_LEVEL_ERROR,
-					TRACE_INIT,
-					"Failed to configure $12 Control Register F12_2D_CTRL%d - 0x%08lX",
-					i,
-					status);
-				//goto exit;
-				status = STATUS_SUCCESS;
-			}
+				"Failed to configure $12 Control Register F12_2D_CTRL%d - 0x%08lX",
+				item->Register,
+				status);
+			//goto exit;
+			status = STATUS_SUCCESS;
 		}
 	}
 
@@ -422,15 +400,12 @@ exit:
 }
 
 NTSTATUS
-RmiQueryDataRegistersF12(
-	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
-	IN SPB_CONTEXT* SpbContext
+RmiDiscoverDataRegistersF12(
+	IN RMI4_CONTROLLER_CONTEXT* ControllerContext
 )
 {
-	NTSTATUS status;
+	NTSTATUS status = STATUS_SUCCESS;
 	int index;
-	RMI4_F12_QUERY_8_REGISTER Query8Reg = { 0 };
-	RtlZeroMemory(&Query8Reg, sizeof(RMI4_F12_QUERY_8_REGISTER));
 
 	/*
 		Lumia 950s (Retail) should have
@@ -443,20 +418,51 @@ RmiQueryDataRegistersF12(
 		15 (FINGER_REPORT_DATA)
 	*/
 
-	status = RmiGetSupportedDataRegistersF12(
-		ControllerContext,
-		SpbContext,
-		&Query8Reg);
+	//
+	// Find RMI F12 function
+	//
+	index = RmiGetFunctionIndex(
+		ControllerContext->Descriptors,
+		ControllerContext->FunctionCount,
+		RMI4_F12_2D_TOUCHPAD_SENSOR);
 
-	if (!NT_SUCCESS(status)) {
+	if (index == ControllerContext->FunctionCount)
+	{
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_INIT,
+			"Set ReportingMode failure - RMI Function 12 missing");
+
+		status = STATUS_INVALID_DEVICE_STATE;
+		goto exit;
+	}
+
+	PRMI_REGISTER_DESC_ITEM item;
+	for (int i = 0; i < ControllerContext->F12DataRegDesc.NumRegisters; i++)
+	{
+		item = &ControllerContext->F12DataRegDesc.Registers[i];
 
 		Trace(
 			TRACE_LEVEL_ERROR,
 			TRACE_INIT,
-			"Failed to read the Query 8 Register - 0x%08lX",
-			status);
-		goto exit;
+			"Discovered $12 Data Register F12_2D_DATA%d at 0x%X with a size of %d",
+			item->Register,
+			ControllerContext->Descriptors[index].DataBase + i,
+			item->RegisterSize
+		);
 	}
+
+exit:
+	return status;
+}
+
+NTSTATUS
+RmiDiscoverQueryRegistersF12(
+	IN RMI4_CONTROLLER_CONTEXT* ControllerContext
+)
+{
+	NTSTATUS status = STATUS_SUCCESS;
+	int index;
 
 	//
 	// Find RMI F12 function
@@ -477,24 +483,19 @@ RmiQueryDataRegistersF12(
 		goto exit;
 	}
 
-	for (USHORT i = 0; i < (sizeof(Query8Reg.Data) - 1) * 8; i++)
+	PRMI_REGISTER_DESC_ITEM item;
+	for (int i = 0; i < ControllerContext->F12QueryRegDesc.NumRegisters; i++)
 	{
-		DWORD RegisterMask = (1 << (i % 8));
-		DWORD DataIndex = (i - (i % 8)) / 8 + 1;
+		item = &ControllerContext->F12QueryRegDesc.Registers[i];
 
-		if ((Query8Reg.Data[DataIndex] & RegisterMask) == RegisterMask)
-		{
-			UINT8 indexData = RmiGetRegisterIndex(&ControllerContext->F12DataRegDesc, i);
-
-			Trace(
-				TRACE_LEVEL_ERROR,
-				TRACE_INIT,
-				"Discovered $12 Data Register F12_2D_DATA%d at 0x%X with a size of %d",
-				i,
-				ControllerContext->Descriptors[index].DataBase + indexData,
-				ControllerContext->F12DataRegDesc.Registers[indexData].RegisterSize
-			);
-		}
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_INIT,
+			"Discovered $12 Query Register F12_2D_QUERY%d at 0x%X with a size of %d",
+			item->Register,
+			ControllerContext->Descriptors[index].QueryBase + i,
+			item->RegisterSize
+		);
 	}
 
 exit:
@@ -507,11 +508,9 @@ RmiConfigureF12(
 	IN SPB_CONTEXT* SpbContext
 )
 {
-	NTSTATUS status;
+	NTSTATUS status = STATUS_SUCCESS;
 	int index;
-
-	BYTE queryF12Addr = 0;
-	char buf = 0;
+	RMI4_F12_QUERY_0_REGISTER GeneralInformation = { 0 };
 
 	//
 	// Find 2D touch sensor function and configure it
@@ -547,13 +546,17 @@ RmiConfigureF12(
 		goto exit;
 	}
 
-	// Retrieve base address for queries
-	queryF12Addr = ControllerContext->Descriptors[index].QueryBase;
+	Trace(
+		TRACE_LEVEL_INFORMATION,
+		TRACE_INIT,
+		"Reading general info register");
+
+	// Zeroth query register is general information about function $12
 	status = SpbReadDataSynchronously(
 		SpbContext,
-		queryF12Addr,
-		&buf,
-		sizeof(char)
+		ControllerContext->Descriptors[index].QueryBase,
+		&GeneralInformation,
+		sizeof(RMI4_F12_QUERY_0_REGISTER)
 	);
 
 	if (!NT_SUCCESS(status))
@@ -566,25 +569,28 @@ RmiConfigureF12(
 		goto exit;
 	}
 
-	++queryF12Addr;
+	ControllerContext->HasDribble = GeneralInformation.HasDribble;
+	ControllerContext->HasRegisterDescriptors = GeneralInformation.HasRegisterDescriptors;
 
-	/*if (!(buf & BIT(0)))
+	if (!GeneralInformation.HasRegisterDescriptors)
 	{
 		Trace(
 			TRACE_LEVEL_ERROR,
 			TRACE_INIT,
-			"Behavior of F12 without register descriptors is undefined."
+			"Behavior of F12 without register descriptors is undefined. Is this a counterfeit IC? Assuming 10 fingers supported and only finger reporting available (Data 1)"
 		);
 
-		status = STATUS_INVALID_PARAMETER;
+		ControllerContext->MaxFingers = 10;
+
 		goto exit;
-	}*/
+	}
 
-	ControllerContext->HasDribble = !!(buf & BIT(3));
-
+	// First query register is the size of the presence map for Query Registers
+	// Second query register is the register presence map for Query Registers
+	// Third query register is the size map for Query Registers
 	status = RmiReadRegisterDescriptor(
 		SpbContext,
-		queryF12Addr,
+		ControllerContext->Descriptors[index].QueryBase + 1,
 		&ControllerContext->F12QueryRegDesc
 	);
 
@@ -598,11 +604,12 @@ RmiConfigureF12(
 		goto exit;
 	}
 
-	queryF12Addr += 3;
-
+	// Fourth query register is the size of the presence map for Control Registers
+	// Fifth query register is the register presence map for Control Registers
+	// Sixth query register is the size map for Control Registers
 	status = RmiReadRegisterDescriptor(
 		SpbContext,
-		queryF12Addr,
+		ControllerContext->Descriptors[index].QueryBase + 4,
 		&ControllerContext->F12ControlRegDesc
 	);
 
@@ -615,11 +622,13 @@ RmiConfigureF12(
 			status);
 		goto exit;
 	}
-	queryF12Addr += 3;
 
+	// Seventh query register is the size of the presence map for Control Registers
+	// Eigth query register is the register presence map for Control Registers
+	// Nineth query register is the size map for Control Registers
 	status = RmiReadRegisterDescriptor(
 		SpbContext,
-		queryF12Addr,
+		ControllerContext->Descriptors[index].QueryBase + 7,
 		&ControllerContext->F12DataRegDesc
 	);
 
@@ -633,45 +642,12 @@ RmiConfigureF12(
 		goto exit;
 	}
 
-	queryF12Addr += 3;
-
+	// Retrieve the total size we need to query to get all of the data with every interrupt
 	ControllerContext->PacketSize = RmiRegisterDescriptorCalcSize(
 		&ControllerContext->F12DataRegDesc
 	);
 
-	status = RmiConfigureControlRegistersF12(
-		ControllerContext,
-		SpbContext
-	);
-
-	if (!NT_SUCCESS(status)) {
-
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Failed to configure $12 Control Registers - 0x%08lX",
-			status);
-		//goto exit;
-		status = STATUS_SUCCESS;
-	}
-
-	status = RmiQueryDataRegistersF12(
-		ControllerContext,
-		SpbContext
-	);
-
-	if (!NT_SUCCESS(status)) {
-
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Failed to query $12 Data Registers - 0x%08lX",
-			status);
-		//goto exit;
-		status = STATUS_SUCCESS;
-	}
-
-
+	// Get the accurate finger count from the controller
 	USHORT FingerCount = RmiGetFingerCountFromControllerF12(ControllerContext);
 
 	Trace(
@@ -682,308 +658,49 @@ RmiConfigureF12(
 
 	ControllerContext->MaxFingers = (UCHAR)FingerCount;
 
-exit:
-	return status;
+	// Discover query registers
+	status = RmiDiscoverQueryRegistersF12(
+		ControllerContext
+	);
 
-}
+	if (!NT_SUCCESS(status)) {
 
-NTSTATUS
-RmiGetSupportedControlRegistersF12(
-	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
-	IN SPB_CONTEXT* SpbContext,
-	OUT PRMI4_F12_QUERY_5_REGISTER ControlRegisterData
-)
-{
-	int index;
-	NTSTATUS status;
-	UINT8 indexQuery4;
-	UINT8 indexQuery5;
-
-	NT_ASSERT(ControlRegisterData != NULL);
-
-	//
-	// Find RMI F12 function
-	//
-	index = RmiGetFunctionIndex(
-		ControllerContext->Descriptors,
-		ControllerContext->FunctionCount,
-		RMI4_F12_2D_TOUCHPAD_SENSOR);
-
-	if (index == ControllerContext->FunctionCount)
-	{
 		Trace(
 			TRACE_LEVEL_ERROR,
 			TRACE_INIT,
-			"Set ReportingMode failure - RMI Function 12 missing");
-
-		status = STATUS_INVALID_DEVICE_STATE;
+			"Failed to discover $12 Query Registers - 0x%08lX",
+			status);
 		goto exit;
 	}
 
-	status = RmiChangePage(
+	// Discover control registers
+	status = RmiDiscoverControlRegistersF12(
 		ControllerContext,
-		SpbContext,
-		ControllerContext->FunctionOnPage[index]);
-
-	if (!NT_SUCCESS(status))
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Could not change register page");
-
-		goto exit;
-	}
-
-	indexQuery4 = RmiGetRegisterIndex(&ControllerContext->F12QueryRegDesc, 4);
-
-	if (indexQuery4 == ControllerContext->F12QueryRegDesc.NumRegisters)
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Cannot find F12_2D_QUERY4 offset");
-
-		status = STATUS_INVALID_DEVICE_STATE;
-		goto exit;
-	}
-
-	if (ControllerContext->F12QueryRegDesc.Registers[indexQuery4].RegisterSize != sizeof(ControlRegisterData->Size))
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Unexpected F12_2D_QUERY4 register size: %d", ControllerContext->F12QueryRegDesc.Registers[indexQuery4].RegisterSize);
-
-		status = STATUS_INVALID_DEVICE_STATE;
-		goto exit;
-	}
-
-	//
-	// Read Device Control register
-	//
-	status = SpbReadDataSynchronously(
-		SpbContext,
-		ControllerContext->Descriptors[index].QueryBase + indexQuery4,
-		&(ControlRegisterData->Size),
-		sizeof(ControlRegisterData->Size)
+		SpbContext
 	);
 
-	if (!NT_SUCCESS(status))
-	{
+	if (!NT_SUCCESS(status)) {
+
 		Trace(
 			TRACE_LEVEL_ERROR,
 			TRACE_INIT,
-			"Could not read F12_2D_QUERY4 register - 0x%08lX",
+			"Failed to discover $12 Control Registers - 0x%08lX",
 			status);
-
 		goto exit;
 	}
 
-	if (ControlRegisterData->Size > sizeof(ControlRegisterData->Data))
-		ControlRegisterData->Size = sizeof(ControlRegisterData->Data);
-
-	indexQuery5 = RmiGetRegisterIndex(&ControllerContext->F12QueryRegDesc, 5);
-
-	if (indexQuery5 == ControllerContext->F12QueryRegDesc.NumRegisters)
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Cannot find F12_2D_QUERY5 offset");
-
-		status = STATUS_INVALID_DEVICE_STATE;
-		goto exit;
-	}
-
-	if (ControllerContext->F12QueryRegDesc.Registers[indexQuery5].RegisterSize < ControlRegisterData->Size)
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Unexpected F12_2D_QUERY5 register size: %d", ControllerContext->F12QueryRegDesc.Registers[indexQuery5].RegisterSize);
-
-		status = STATUS_INVALID_DEVICE_STATE;
-		goto exit;
-	}
-	else if (ControllerContext->F12QueryRegDesc.Registers[indexQuery5].RegisterSize > ControlRegisterData->Size)
-	{
-		Trace(
-			TRACE_LEVEL_WARNING,
-			TRACE_INIT,
-			"Higher F12_2D_QUERY5 register size: %d. Must expand driver!", ControllerContext->F12QueryRegDesc.Registers[indexQuery5].RegisterSize);
-	}
-
-	//
-	// Read Device Control register
-	//
-	status = SpbReadDataSynchronously(
-		SpbContext,
-		ControllerContext->Descriptors[index].QueryBase + indexQuery5,
-		&(ControlRegisterData->Data),
-		ControlRegisterData->Size
+	// Discover data registers
+	status = RmiDiscoverDataRegistersF12(
+		ControllerContext
 	);
 
-	if (!NT_SUCCESS(status))
-	{
+	if (!NT_SUCCESS(status)) {
+
 		Trace(
 			TRACE_LEVEL_ERROR,
 			TRACE_INIT,
-			"Could not read F12_2D_QUERY5 register - 0x%08lX",
+			"Failed to discover $12 Data Registers - 0x%08lX",
 			status);
-
-		goto exit;
-	}
-
-exit:
-	return status;
-}
-
-NTSTATUS
-RmiGetSupportedDataRegistersF12(
-	IN RMI4_CONTROLLER_CONTEXT* ControllerContext,
-	IN SPB_CONTEXT* SpbContext,
-	OUT PRMI4_F12_QUERY_8_REGISTER ControlRegisterData
-)
-{
-	int index;
-	NTSTATUS status;
-	UINT8 indexQuery7;
-	UINT8 indexQuery8;
-
-	NT_ASSERT(ControlRegisterData != NULL);
-
-	//
-	// Find RMI F12 function
-	//
-	index = RmiGetFunctionIndex(
-		ControllerContext->Descriptors,
-		ControllerContext->FunctionCount,
-		RMI4_F12_2D_TOUCHPAD_SENSOR);
-
-	if (index == ControllerContext->FunctionCount)
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Set ReportingMode failure - RMI Function 12 missing");
-
-		status = STATUS_INVALID_DEVICE_STATE;
-		goto exit;
-	}
-
-	status = RmiChangePage(
-		ControllerContext,
-		SpbContext,
-		ControllerContext->FunctionOnPage[index]);
-
-	if (!NT_SUCCESS(status))
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Could not change register page");
-
-		goto exit;
-	}
-
-	indexQuery7 = RmiGetRegisterIndex(&ControllerContext->F12QueryRegDesc, 7);
-
-	if (indexQuery7 == ControllerContext->F12QueryRegDesc.NumRegisters)
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Cannot find F12_2D_QUERY7 offset");
-
-		status = STATUS_INVALID_DEVICE_STATE;
-		goto exit;
-	}
-
-	if (ControllerContext->F12QueryRegDesc.Registers[indexQuery7].RegisterSize != sizeof(ControlRegisterData->Size))
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Unexpected F12_2D_QUERY7 register size: %d", ControllerContext->F12QueryRegDesc.Registers[indexQuery7].RegisterSize);
-
-		status = STATUS_INVALID_DEVICE_STATE;
-		goto exit;
-	}
-
-	//
-	// Read Device Control register
-	//
-	status = SpbReadDataSynchronously(
-		SpbContext,
-		ControllerContext->Descriptors[index].QueryBase + indexQuery7,
-		&(ControlRegisterData->Size),
-		sizeof(ControlRegisterData->Size)
-	);
-
-	if (!NT_SUCCESS(status))
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Could not read F12_2D_QUERY7 register - 0x%08lX",
-			status);
-
-		goto exit;
-	}
-
-	if (ControlRegisterData->Size > sizeof(ControlRegisterData->Data))
-		ControlRegisterData->Size = sizeof(ControlRegisterData->Data);
-
-	indexQuery8 = RmiGetRegisterIndex(&ControllerContext->F12QueryRegDesc, 8);
-
-	if (indexQuery8 == ControllerContext->F12QueryRegDesc.NumRegisters)
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Cannot find F12_2D_QUERY8 offset");
-
-		status = STATUS_INVALID_DEVICE_STATE;
-		goto exit;
-	}
-
-	if (ControllerContext->F12QueryRegDesc.Registers[indexQuery8].RegisterSize < ControlRegisterData->Size)
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Unexpected F12_2D_QUERY8 register size: %d", ControllerContext->F12QueryRegDesc.Registers[indexQuery8].RegisterSize);
-
-		status = STATUS_INVALID_DEVICE_STATE;
-		goto exit;
-	}
-	else if (ControllerContext->F12QueryRegDesc.Registers[indexQuery8].RegisterSize > ControlRegisterData->Size)
-	{
-		Trace(
-			TRACE_LEVEL_WARNING,
-			TRACE_INIT,
-			"Higher F12_2D_QUERY8 register size: %d. Must expand driver!", ControllerContext->F12QueryRegDesc.Registers[indexQuery8].RegisterSize);
-	}
-
-	//
-	// Read Device Control register
-	//
-	status = SpbReadDataSynchronously(
-		SpbContext,
-		ControllerContext->Descriptors[index].QueryBase + indexQuery8,
-		&(ControlRegisterData->Data),
-		ControlRegisterData->Size
-	);
-
-	if (!NT_SUCCESS(status))
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Could not read F12_2D_QUERY8 register - 0x%08lX",
-			status);
-
 		goto exit;
 	}
 

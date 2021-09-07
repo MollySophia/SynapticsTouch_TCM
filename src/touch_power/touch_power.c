@@ -1,12 +1,9 @@
-#include <Cross Platform Shim\compat.h>
 #include <controller.h>
 #include <spb.h>
-#include <rmi4\rmiinternal.h>
-#include <rmi4\f01\function01.h>
-#include <rmi4\f12\function12.h>
 #include <internal.h>
-#include <touchpower.h>
-#include <touchpower.tmh>
+#include <touch_power\public.h>
+#include <touch_power\touch_power.h>
+#include <touch_power.tmh>
 
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text (PAGE, PowerIoRegPnPNotification)

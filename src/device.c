@@ -29,7 +29,7 @@
 #include <gpio.h>
 #include <device.h>
 #include <rmi4/rmiinternal.h>
-#include <touchpower.h>
+#include <touch_power/touch_power.h>
 #include <device.tmh>
 
 #ifdef ALLOC_PRAGMA

@@ -9,7 +9,7 @@
 #include <rmi4\rmiinternal.h>
 #include <rmi4\f12\registers.h>
 #include <rmi4\f12\controlregisters.h>
-#include <rmi4\f12\finger.h>
+#include <rmi4\f12\data1\finger.h>
 #include <finger.tmh>
 
 USHORT
@@ -95,18 +95,23 @@ Return Value:
 	PVOID controllerData = NULL;
 	controller = (RMI4_CONTROLLER_CONTEXT*)ControllerContext;
 
-	UINT8 Data1Offset = RmiGetRegisterIndex(&controller->F12DataRegDesc, 1);
-	if (Data1Offset == controller->F12DataRegDesc.NumRegisters)
-	{
-		status = STATUS_SUCCESS;
-		goto exit;
-	}
-	USHORT Data1Size = (USHORT)controller->F12DataRegDesc.Registers[Data1Offset].RegisterSize;
-
 	if (controller->MaxFingers == 0)
 	{
 		status = STATUS_SUCCESS;
 		goto exit;
+	}
+
+	USHORT Data1Size = controller->MaxFingers * sizeof(RMI4_F12_FINGER_3D_W_DATA_REGISTER);
+
+	if (controller->HasRegisterDescriptors)
+	{
+		UINT8 Data1Offset = RmiGetRegisterIndex(&controller->F12DataRegDesc, 1);
+		if (Data1Offset == controller->F12DataRegDesc.NumRegisters)
+		{
+			status = STATUS_SUCCESS;
+			goto exit;
+		}
+		Data1Size = (USHORT)controller->F12DataRegDesc.Registers[Data1Offset].RegisterSize;
 	}
 
 	controllerData = ExAllocatePoolWithTag(

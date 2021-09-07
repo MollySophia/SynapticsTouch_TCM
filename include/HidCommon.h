@@ -3,9 +3,6 @@
 
 #pragma once
 
-#ifndef __HID_COMMON_H__
-#define __HID_COMMON_H__
-
 #define PTP_MAX_CONTACT_POINTS 10
 #define PTP_BUTTON_TYPE_CLICK_PAD 0
 #define PTP_BUTTON_TYPE_PRESSURE_PAD 1
@@ -68,5 +65,3 @@
 #define REPORT_BUFFER_SIZE   1024
 #define DEVICE_VERSION 0x01
 #define MAX_FINGERS	16
-
-#endif
