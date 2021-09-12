@@ -342,6 +342,29 @@ RmiDiscoverControlRegistersF12(
 		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL38 at 0x2B with a size of 16
 		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL39 at 0x2C with a size of 16
 		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL40 at 0x2D with a size of 16
+
+		Lumia 950s (Inking) should have
+		the following control registers:
+
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL8 at 0x14 with a size of 14
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL9 at 0x15 with a size of 21
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL10 at 0x16 with a size of 7
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL11 at 0x17 with a size of 21
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL15 at 0x18 with a size of 7
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL18 at 0x19 with a size of 30
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL20 at 0x1A with a size of 3
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL22 at 0x1B with a size of 1
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL23 at 0x1C with a size of 3
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL24 at 0x1D with a size of 4
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL25 at 0x1E with a size of 9
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL26 at 0x1F with a size of 1
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL27 at 0x20 with a size of 5
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL28 at 0x21 with a size of 1
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL29 at 0x22 with a size of 16
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL30 at 0x23 with a size of 16
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL33 at 0x24 with a size of 28
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL34 at 0x25 with a size of 16
+		SynapticsTouch: Discovered $12 Control Register F12_2D_CTRL35 at 0x26 with a size of 19
 	*/
 
 	//
@@ -412,11 +435,19 @@ RmiDiscoverDataRegistersF12(
 		Lumia 950s (Retail) should have
 		the following data registers:
 
-		1 - ok
-		2
-		4  (GESTURE_REPORT_DATA)
-		13
-		15 (FINGER_REPORT_DATA)
+		SynapticsTouch: Discovered $12 Data Register F12_2D_DATA1 - ok
+		SynapticsTouch: Discovered $12 Data Register F12_2D_DATA2
+		SynapticsTouch: Discovered $12 Data Register F12_2D_DATA4  (GESTURE_REPORT_DATA)
+		SynapticsTouch: Discovered $12 Data Register F12_2D_DATA13
+		SynapticsTouch: Discovered $12 Data Register F12_2D_DATA15 (FINGER_REPORT_DATA)
+
+		Lumia 950s (Inking) should have
+		the following data registers:
+
+		SynapticsTouch: Discovered $12 Data Register F12_2D_DATA1 at 0x8 with a size of 80
+		SynapticsTouch: Discovered $12 Data Register F12_2D_DATA4 at 0x9 with a size of 5  (GESTURE_REPORT_DATA)
+		SynapticsTouch: Discovered $12 Data Register F12_2D_DATA6 at 0xA with a size of 12 (ACTIVE_PEN_REPORT_DATA)
+		SynapticsTouch: Discovered $12 Data Register F12_2D_DATA15 at 0xB with a size of 2 (FINGER_REPORT_DATA)
 	*/
 
 	//
@@ -464,6 +495,22 @@ RmiDiscoverQueryRegistersF12(
 {
 	NTSTATUS status = STATUS_SUCCESS;
 	int index;
+
+	/*
+		Lumia 950 (Inking) has the following query registers:
+	
+		Discovered $12 Query Register F12_2D_QUERY0 at 0x4D with a size of 1
+		Discovered $12 Query Register F12_2D_QUERY1 at 0x4E with a size of 1
+		Discovered $12 Query Register F12_2D_QUERY2 at 0x4F with a size of 3
+		Discovered $12 Query Register F12_2D_QUERY3 at 0x50 with a size of 32
+		Discovered $12 Query Register F12_2D_QUERY4 at 0x51 with a size of 1
+		Discovered $12 Query Register F12_2D_QUERY5 at 0x52 with a size of 6
+		Discovered $12 Query Register F12_2D_QUERY6 at 0x53 with a size of 43
+		Discovered $12 Query Register F12_2D_QUERY7 at 0x54 with a size of 1
+		Discovered $12 Query Register F12_2D_QUERY8 at 0x55 with a size of 4
+		Discovered $12 Query Register F12_2D_QUERY9 at 0x56 with a size of 9
+		Discovered $12 Query Register F12_2D_QUERY10 at 0x57 with a size of 2
+	*/
 
 	//
 	// Find RMI F12 function
