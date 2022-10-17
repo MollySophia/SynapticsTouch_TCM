@@ -22,9 +22,7 @@
 #include <Cross Platform Shim\compat.h>
 #include <controller.h>
 #include <spb.h>
-#include <rmi4\rmiinternal.h>
-#include <rmi4\f01\function01.h>
-#include <rmi4\f12\function12.h>
+#include "tcm/touch_tcm.h"
 #include <internal.h>
 #include <touch_power\touch_power.h>
 #include <power.tmh>
@@ -39,7 +37,7 @@ TchPowerSettingCallback(
 {
     NTSTATUS status = STATUS_SUCCESS;
     PDEVICE_EXTENSION devContext = NULL;
-    RMI4_CONTROLLER_CONTEXT* ControllerContext = NULL;
+    TCM_CONTROLLER_CONTEXT* ControllerContext = NULL;
     SPB_CONTEXT* SpbContext = NULL;
 
     if (Context == NULL)
@@ -55,7 +53,7 @@ TchPowerSettingCallback(
     }
 
     devContext = (PDEVICE_EXTENSION)Context;
-    ControllerContext = (RMI4_CONTROLLER_CONTEXT*)devContext->TouchContext;
+    ControllerContext = (TCM_CONTROLLER_CONTEXT*)devContext->TouchContext;
     SpbContext = &(devContext->I2CContext);
 
     //
@@ -90,11 +88,13 @@ TchPowerSettingCallback(
                 TRACE_POWER,
                 "On Battery Power");
 
-            status = RmiChangeChargerConnectedState(
+            /*
+            status = TcmChangeChargerConnectedState(
                 ControllerContext,
                 SpbContext,
                 0
             );
+            */
 
             if (!NT_SUCCESS(status))
             {
@@ -113,12 +113,13 @@ TchPowerSettingCallback(
                 TRACE_LEVEL_INFORMATION,
                 TRACE_POWER,
                 "On External Power");
-
-            status = RmiChangeChargerConnectedState(
+            /*
+            status = TcmChangeChargerConnectedState(
                 ControllerContext,
                 SpbContext,
                 1
             );
+            */
 
             if (!NT_SUCCESS(status))
             {
@@ -187,33 +188,33 @@ TchPowerSettingCallback(
                 &GestureEnabled,
                 sizeof(DWORD))) && GestureEnabled == 1)
             {
-                status = RmiSetReportingFlagsF12(
-                    ControllerContext,
-                    SpbContext,
-                    RMI4_F12_REPORTING_WAKEUP_GESTURE_MODE,
-                    NULL
-                );
+                // status = RmiSetReportingFlagsF12(
+                //     ControllerContext,
+                //     SpbContext,
+                //     RMI4_F12_REPORTING_WAKEUP_GESTURE_MODE,
+                //     NULL
+                // );
 
-                if (!NT_SUCCESS(status))
-                {
-                    Trace(
-                        TRACE_LEVEL_ERROR,
-                        TRACE_POWER,
-                        "Error Changing Reporting Mode for F12 - 0x%08lX",
-                        status);
-                    goto exit;
-                }
+                // if (!NT_SUCCESS(status))
+                // {
+                //     Trace(
+                //         TRACE_LEVEL_ERROR,
+                //         TRACE_POWER,
+                //         "Error Changing Reporting Mode for F12 - 0x%08lX",
+                //         status);
+                //     goto exit;
+                // }
             }
 
-            if (!NT_SUCCESS(status))
-            {
-                Trace(
-                    TRACE_LEVEL_ERROR,
-                    TRACE_POWER,
-                    "Error Changing Reporting Mode for F12 - 0x%08lX",
-                    status);
-                goto exit;
-            }
+            // if (!NT_SUCCESS(status))
+            // {
+            //     Trace(
+            //         TRACE_LEVEL_ERROR,
+            //         TRACE_POWER,
+            //         "Error Changing Reporting Mode for F12 - 0x%08lX",
+            //         status);
+            //     goto exit;
+            // }
 
             break;
         case 1:
@@ -234,22 +235,22 @@ TchPowerSettingCallback(
                 goto exit;
             }
 
-            status = RmiSetReportingFlagsF12(
-                ControllerContext,
-                SpbContext,
-                RMI4_F12_REPORTING_CONTINUOUS_MODE,
-                NULL
-            );
+            // status = RmiSetReportingFlagsF12(
+            //     ControllerContext,
+            //     SpbContext,
+            //     RMI4_F12_REPORTING_CONTINUOUS_MODE,
+            //     NULL
+            // );
 
-            if (!NT_SUCCESS(status))
-            {
-                Trace(
-                    TRACE_LEVEL_ERROR,
-                    TRACE_POWER,
-                    "Error Changing Reporting Mode for F12 - 0x%08lX",
-                    status);
-                goto exit;
-            }
+            // if (!NT_SUCCESS(status))
+            // {
+            //     Trace(
+            //         TRACE_LEVEL_ERROR,
+            //         TRACE_POWER,
+            //         "Error Changing Reporting Mode for F12 - 0x%08lX",
+            //         status);
+            //     goto exit;
+            // }
             break;
         case 2:
             Trace(
@@ -294,10 +295,11 @@ Return Value:
 
 --*/
 {    
-    RMI4_CONTROLLER_CONTEXT* controller;
-    NTSTATUS status;
+    TCM_CONTROLLER_CONTEXT* controller;
+    //NTSTATUS status;
+    (void*)SpbContext;
 
-    controller = (RMI4_CONTROLLER_CONTEXT*) ControllerContext;
+    controller = (TCM_CONTROLLER_CONTEXT*) ControllerContext;
 
     //
     // Check if we were already on
@@ -312,19 +314,19 @@ Return Value:
     //
     // Attempt to put the controller into operating mode 
     //
-    status = RmiChangeSleepState(
-        controller,
-        SpbContext,
-        RMI4_F01_DEVICE_CONTROL_SLEEP_MODE_OPERATING);
+    // status = RmiChangeSleepState(
+    //     controller,
+    //     SpbContext,
+    //     RMI4_F01_DEVICE_CONTROL_SLEEP_MODE_OPERATING);
 
-    if (!NT_SUCCESS(status))
-    {
-        Trace(
-            TRACE_LEVEL_ERROR,
-            TRACE_POWER,
-            "Error waking touch controller - 0x%08lX",
-            status);
-    }
+    // if (!NT_SUCCESS(status))
+    // {
+    //     Trace(
+    //         TRACE_LEVEL_ERROR,
+    //         TRACE_POWER,
+    //         "Error waking touch controller - 0x%08lX",
+    //         status);
+    // }
 
 exit:
 
@@ -355,10 +357,11 @@ Return Value:
 
 --*/
 {
-    RMI4_CONTROLLER_CONTEXT* controller;
-    NTSTATUS status;
+    TCM_CONTROLLER_CONTEXT* controller;
+    // NTSTATUS status;
+    (void*)SpbContext;
 
-    controller = (RMI4_CONTROLLER_CONTEXT*) ControllerContext;
+    controller = (TCM_CONTROLLER_CONTEXT*) ControllerContext;
 
     //
     // Interrupts are now disabled but the ISR may still be
@@ -370,19 +373,19 @@ Return Value:
     //
     // Put the chip in sleep mode
     //
-    status = RmiChangeSleepState(
-        ControllerContext,
-        SpbContext,
-        RMI4_F01_DEVICE_CONTROL_SLEEP_MODE_SLEEPING);
+    // status = RmiChangeSleepState(
+    //     ControllerContext,
+    //     SpbContext,
+    //     RMI4_F01_DEVICE_CONTROL_SLEEP_MODE_SLEEPING);
 
-    if (!NT_SUCCESS(status))
-    {
-        Trace(
-            TRACE_LEVEL_ERROR,
-            TRACE_POWER,
-            "Error sleeping touch controller - 0x%08lX",
-            status);
-    }
+    // if (!NT_SUCCESS(status))
+    // {
+    //     Trace(
+    //         TRACE_LEVEL_ERROR,
+    //         TRACE_POWER,
+    //         "Error sleeping touch controller - 0x%08lX",
+    //         status);
+    // }
 
     controller->DevicePowerState = PowerDeviceD3;
 

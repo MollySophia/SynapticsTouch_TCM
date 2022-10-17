@@ -21,8 +21,7 @@
 
 #include <Cross Platform Shim\compat.h>
 #include <spb.h>
-#include <rmi4\f01\function01.h>
-#include <rmi4\rmiinternal.h>
+#include <tcm/touch_tcm.h>
 #include <init.tmh>
 
 NTSTATUS
@@ -50,99 +49,52 @@ TchStartDevice(
 
 --*/
 {
-	RMI4_CONTROLLER_CONTEXT* controller;
-	ULONG interruptStatus;
-	NTSTATUS status;
+	NTSTATUS status = STATUS_SUCCESS;
+	TCM_CONTROLLER_CONTEXT* controller = (TCM_CONTROLLER_CONTEXT*)ControllerContext;
 
-	controller = (RMI4_CONTROLLER_CONTEXT*)ControllerContext;
-	interruptStatus = 0;
-	status = STATUS_SUCCESS;
+	if (controller == NULL) {
+		return STATUS_INVALID_PARAMETER;
+	}
 
-	//
-	// Populate context with RMI function descriptors
-	//
-	status = RmiBuildFunctionsTable(
-		ControllerContext,
-		SpbContext);
-
-	if (!NT_SUCCESS(status))
-	{
+	status = TcmReadMessage(controller,
+						SpbContext,
+						(PREPORT_CONTEXT)NULL);
+	if(!NT_SUCCESS(status)) {
 		Trace(
 			TRACE_LEVEL_ERROR,
 			TRACE_INIT,
-			"Could not build table of RMI functions - 0x%08lX",
+			"Failed to read Identification packet - 0x%08lX",
 			status);
-		goto exit;
+		return STATUS_UNSUCCESSFUL;
 	}
+	
+	controller->ControllerState.Power = TCM_POWER_ON;
+	controller->ControllerState.Init = TRUE;
 
-	//
-	// Initialize RMI function control registers
-	//
-	status = RmiConfigureFunctions(
-		ControllerContext,
+	status = TcmGetIcInfo(controller,
 		SpbContext);
 
-	if (!NT_SUCCESS(status))
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INTERRUPT,
-			"Could not configure chip - 0x%08lX",
-			status);
-
-		goto exit;
-	}
-
-	status = RmiConfigureInterruptEnable(
-		ControllerContext,
-		SpbContext);
-
-	if (!NT_SUCCESS(status))
-	{
+	if (!NT_SUCCESS(status)) {
 		Trace(
 			TRACE_LEVEL_ERROR,
 			TRACE_INIT,
-			"Could not configure interrupt enablement - 0x%08lX",
+			"Failed to get ic info - 0x%08lX",
 			status);
-		goto exit;
+		return STATUS_UNSUCCESSFUL;
 	}
 
-	//
-	// Read and store the firmware version
-	//
-	status = RmiGetFirmwareVersion(
-		ControllerContext,
+	status = TcmGetReportConfig(controller,
 		SpbContext);
 
-	if (!NT_SUCCESS(status))
-	{
+	if (!NT_SUCCESS(status) || controller->ConfigData.DataLength == 0) {
 		Trace(
 			TRACE_LEVEL_ERROR,
 			TRACE_INIT,
-			"Could not get RMI firmware version - 0x%08lX",
+			"Failed to get report config - 0x%08lX",
 			status);
-		goto exit;
+		return STATUS_UNSUCCESSFUL;
 	}
 
-	//
-	// Clear any pending interrupts
-	//
-	status = RmiCheckInterrupts(
-		ControllerContext,
-		SpbContext,
-		&interruptStatus
-	);
-
-	if (!NT_SUCCESS(status))
-	{
-		Trace(
-			TRACE_LEVEL_ERROR,
-			TRACE_INIT,
-			"Could not get interrupt status - 0x%08lX%",
-			status);
-	}
-
-exit:
 	return status;
 }
 
@@ -168,11 +120,13 @@ Return Value:
 	NTSTATUS indicating sucess or failure
 --*/
 {
-	RMI4_CONTROLLER_CONTEXT* controller;
+	(void*)ControllerContext;
+	(void*)SpbContext;
+	// TCM_CONTROLLER_CONTEXT* controller;
 
-	UNREFERENCED_PARAMETER(SpbContext);
+	// UNREFERENCED_PARAMETER(SpbContext);
 
-	controller = (RMI4_CONTROLLER_CONTEXT*)ControllerContext;
+	// controller = (TCM_CONTROLLER_CONTEXT*)ControllerContext;
 
 	return STATUS_SUCCESS;
 }
@@ -198,12 +152,12 @@ Return Value:
 	NTSTATUS indicating sucess or failure
 --*/
 {
-	RMI4_CONTROLLER_CONTEXT* context;
+	TCM_CONTROLLER_CONTEXT* context;
 	NTSTATUS status;
 	
 	context = ExAllocatePoolWithTag(
 		NonPagedPoolNx,
-		sizeof(RMI4_CONTROLLER_CONTEXT),
+		sizeof(TCM_CONTROLLER_CONTEXT),
 		TOUCH_POOL_TAG);
 
 	if (NULL == context)
@@ -217,13 +171,13 @@ Return Value:
 		goto exit;
 	}
 
-	RtlZeroMemory(context, sizeof(RMI4_CONTROLLER_CONTEXT));
+	RtlZeroMemory(context, sizeof(TCM_CONTROLLER_CONTEXT));
 	context->FxDevice = FxDevice;
 
 	//
 	// Get Touch settings and populate context
 	//
-	TchGetTouchSettings(&context->TouchSettings);
+	//TchGetTouchSettings(&context->TouchSettings);
 
 	//
 	// Allocate a WDFWAITLOCK for guarding access to the
@@ -245,6 +199,28 @@ Return Value:
 		goto exit;
 
 	}
+
+	context->ResponseSignal = ExAllocatePoolWithTag(
+		NonPagedPool,
+		sizeof(TCM_SIGNAL_OBJ),
+		TOUCH_POOL_TAG);
+
+	if (NULL == context->ResponseSignal)
+	{
+		Trace(
+			TRACE_LEVEL_ERROR,
+			TRACE_INIT,
+			"Could not allocate response signal obj!");
+
+		status = STATUS_UNSUCCESSFUL;
+		goto exit;
+	}
+
+	KeInitializeEvent(&context->ResponseSignal->Event, SynchronizationEvent, FALSE);
+
+	context->DeviceAddr = 0x20;
+	context->MaxFingers = MAX_FINGER;
+	context->GesturesEnabled = FALSE;
 
 	*ControllerContext = context;
 
@@ -272,9 +248,9 @@ Return Value:
 	NTSTATUS indicating sucess or failure
 --*/
 {
-	RMI4_CONTROLLER_CONTEXT* controller;
+	TCM_CONTROLLER_CONTEXT* controller;
 
-	controller = (RMI4_CONTROLLER_CONTEXT*)ControllerContext;
+	controller = (TCM_CONTROLLER_CONTEXT*)ControllerContext;
 
 	if (controller != NULL)
 	{

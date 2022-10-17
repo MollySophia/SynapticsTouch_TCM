@@ -25,8 +25,6 @@
 #include <device.h>
 #include <hid.h>
 #include <queue.h>
-#include <selftest\selftest.h>
-#include <selftest\enoselftest.h>
 #include <driver.h>
 #include <driver.tmh>
 
@@ -294,6 +292,7 @@ Return Value:
     //
     // Initialize driver path for self-test
     //
+    /*
     status = TchSelfTestInitialize(fxDevice);
 
     if (!NT_SUCCESS(status))
@@ -322,6 +321,7 @@ Return Value:
 
         goto exit;
     }
+    */
 
 exit:
 

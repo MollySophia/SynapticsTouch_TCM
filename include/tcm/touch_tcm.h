@@ -1,0 +1,418 @@
+#ifndef _TOUCH_TCM_H_
+#define _TOUCH_TCM_H_
+
+#include <report.h>
+
+#define MESSAGE_MARKER			0xA5
+#define MESSAGE_PADDING			0x5A
+#define MESSAGE_HEADER_SIZE		4
+#define MESSAGE_BUFFER_SIZE		512
+
+#define MAX_FINGER 10
+
+#define DEFAULT_CHUNK_SIZE 1024
+
+#define RESPONSE_TIMEOUT 200
+#define RESPONSE_TIMEOUT_LONG 600
+
+#define STATUS_POLL_INTERVAL -10*1000*100
+
+enum tcm_status_code {
+	TCM_STATUS_IDLE = 0x00,
+	TCM_STATUS_OK = 0x01,
+	TCM_STATUS_BUSY = 0x02,
+	TCM_STATUS_CONTINUED_READ = 0x03,
+	TCM_STATUS_NOT_EXECUTED_IN_DEEP_SLEEP = 0x0b,
+	TCM_STATUS_RECEIVE_BUFFER_OVERFLOW = 0x0c,
+	TCM_STATUS_PREVIOUS_COMMAND_PENDING = 0x0d,
+	TCM_STATUS_NOT_IMPLEMENTED = 0x0e,
+	TCM_STATUS_ERROR = 0x0f,
+	TCM_STATUS_INVALID = 0xff,
+};
+
+enum tcm_app_status {
+	APP_STATUS_OK = 0x00,
+	APP_STATUS_BOOTING = 0x01,
+	APP_STATUS_UPDATING = 0x02,
+	APP_STATUS_BAD_APP_CONFIG = 0xff,
+};
+
+enum tcm_report_type {
+	TCM_REPORT_IDENTIFY = 0x10,
+	TCM_REPORT_TOUCH = 0x11,
+	TCM_REPORT_DELTA = 0x12,
+	TCM_REPORT_RAW = 0x13,
+	TCM_REPORT_STATUS = 0x1b,
+	TCM_REPORT_PRINTF = 0x82,
+	TCM_REPORT_HDL_ROMBOOT = 0xfd,
+	TCM_REPORT_HDL_F35 = 0xfe,
+};
+
+enum tcm_report_data_code {
+	TOUCH_END = 0,
+	TOUCH_FOREACH_ACTIVE_OBJECT,
+	TOUCH_FOREACH_OBJECT,
+	TOUCH_FOREACH_END,
+	TOUCH_PAD_TO_NEXT_BYTE,
+	TOUCH_TIMESTAMP,
+	TOUCH_OBJECT_N_INDEX,				// 0x6
+	TOUCH_OBJECT_N_CLASSIFICATION,
+	TOUCH_OBJECT_N_X_POSITION,
+	TOUCH_OBJECT_N_Y_POSITION,
+	TOUCH_OBJECT_N_Z,				// 0xA
+	TOUCH_OBJECT_N_X_WIDTH,
+	TOUCH_OBJECT_N_Y_WIDTH,
+	TOUCH_OBJECT_N_TX_POSITION_TIXELS,
+	TOUCH_OBJECT_N_RX_POSITION_TIXELS,
+	TOUCH_0D_BUTTONS_STATE,				// 0xF
+	TOUCH_GESTURE_ID,				// 0x10
+	TOUCH_FRAME_RATE,
+	TOUCH_POWER_IM,					// 0x12
+	TOUCH_CID_IM,
+	TOUCH_RAIL_IM,
+	TOUCH_CID_VARIANCE_IM,
+	TOUCH_NSM_FREQUENCY,
+	TOUCH_NSM_STATE,				// 0x17
+	TOUCH_NUM_OF_ACTIVE_OBJECTS,			// 0x18
+	TOUCH_NUM_OF_CPU_CYCLES_USED_SINCE_LAST_FRAME,
+	TOUCH_FACE_DETECT,				// 0x1A
+	TOUCH_GESTURE_DATA,
+	TOUCH_OBJECT_N_FORCE,
+	TOUCH_FINGERPRINT_AREA_MEET,
+	TOUCH_TUNING_GAUSSIAN_WIDTHS = 0x80,
+	TOUCH_TUNING_SMALL_OBJECT_PARAMS,
+	TOUCH_TUNING_0D_BUTTONS_VARIANCE,
+	// LGE Custom report code
+	TOUCH_OBJECT_N_AREA = 0xC0,
+	TOUCH_OBJECT_N_ANGLE,
+	TOUCH_OBJECT_N_MAJOR,
+	TOUCH_OBJECT_N_MINOR,
+	TOUCH_BASELINE_ERR_LOG,				// 0xC4
+	TOUCH_PALM_DETECTED,				// 0xC5
+	TOUCH_CUSTOMER_GESTURE_DETECTED,
+	TOUCH_CUSTOMER_GESTURE_INFO,
+	TOUCH_CUSTOMER_GESTURE_INFO2,
+};
+
+enum gesture_detected_data {
+	DETECT_NORMAL_TOUCH = 0x0,
+	DETECT_KNOCK_ON = 0x1,
+	DETECT_KNOCK_CODE = 0x2,
+	DETECT_LONG_PRESS_DOWN = 0x4,
+	DETECT_LONG_PRESS_UP = 0x8,
+	DETECT_SWIPE = 0x10,
+	DETECT_LONG_PRESS = 0x20,
+	DETECT_ONE_TAP = 0x40,
+};
+
+enum {
+	TCM_POWER_OFF = 0,
+	TCM_POWER_SLEEP,
+	TCM_POWER_WAKE,
+	TCM_POWER_ON,
+	TCM_POWER_HW_RESET_ASYNC,
+	TCM_POWER_HW_RESET_SYNC,
+	TCM_POWER_SW_RESET,
+	TCM_POWER_DSV_TOGGLE,
+	TCM_POWER_DSV_ALWAYS_ON,
+};
+
+enum firmware_mode {
+	MODE_APPLICATION_FIRMWARE = 0x01,
+	MODE_HOSTDOWNLOAD_FIRMWARE = 0x02,
+	MODE_ROMBOOTLOADER = 0x04,
+	MODE_BOOTLOADER = 0x0b,
+	MODE_TDDI_BOOTLOADER = 0x0c,
+	MODE_TDDI_HOSTDOWNLOAD_BOOTLOADER = 0x0d,
+	MODE_PRODUCTIONTEST_FIRMWARE = 0x0e,
+};
+
+enum command {
+	CMD_NONE = 0x00,
+	CMD_CONTINUE_WRITE = 0x01,
+	CMD_IDENTIFY = 0x02,
+	CMD_RESET = 0x04,
+	CMD_ENABLE_REPORT = 0x05,
+	CMD_DISABLE_REPORT = 0x06,
+	CMD_GET_BOOT_INFO = 0x10,
+	CMD_ERASE_FLASH = 0x11,
+	CMD_WRITE_FLASH = 0x12,
+	CMD_READ_FLASH = 0x13,
+	CMD_RUN_APPLICATION_FIRMWARE = 0x14,
+	CMD_SPI_MASTER_WRITE_THEN_READ = 0x15,
+	CMD_REBOOT_TO_ROM_BOOTLOADER = 0x16,
+	CMD_RUN_BOOTLOADER_FIRMWARE = 0x1f,
+	CMD_GET_APPLICATION_INFO = 0x20,
+	CMD_GET_STATIC_CONFIG = 0x21,
+	CMD_SET_STATIC_CONFIG = 0x22,
+	CMD_GET_DYNAMIC_CONFIG = 0x23,
+	CMD_SET_DYNAMIC_CONFIG = 0x24,
+	CMD_GET_TOUCH_REPORT_CONFIG = 0x25,
+	CMD_SET_TOUCH_REPORT_CONFIG = 0x26,
+	CMD_REZERO = 0x27,
+	CMD_COMMIT_CONFIG = 0x28,
+	CMD_DESCRIBE_DYNAMIC_CONFIG = 0x29,
+	CMD_PRODUCTION_TEST = 0x2a,
+	CMD_SET_CONFIG_ID = 0x2b,
+	CMD_ENTER_DEEP_SLEEP = 0x2c,
+	CMD_EXIT_DEEP_SLEEP = 0x2d,
+	CMD_GET_TOUCH_INFO = 0x2e,
+	CMD_GET_DATA_LOCATION = 0x2f,
+	CMD_DOWNLOAD_CONFIG = 0x30,
+	CMD_ENTER_PRODUCTION_TEST_MODE = 0x31,
+	CMD_GET_FEATURES = 0x32,
+	CMD_GET_ROMBOOT_INFO = 0x40,
+	CMD_WRITE_PROGRAM_RAM = 0x41,
+	CMD_ROMBOOT_RUN_BOOTLOADER_FIRMWARE = 0x42,
+	CMD_SPI_MASTER_WRITE_THEN_READ_EXTENDED = 0x43,
+	CMD_ENTER_IO_BRIDGE_MODE = 0x44,
+	CMD_ROMBOOT_DOWNLOAD = 0x45,
+	CMD_SET_LGE_GESTURE_CONFIG = 0xc0,
+	CMD_GET_LGE_GESTURE_FAILREASON = 0xc1,
+};
+
+enum command_status {
+	CMD_IDLE = 0,
+	CMD_BUSY = 1,
+	CMD_ERROR = -1,
+};
+
+typedef struct _TCM_STATE
+{
+	BOOLEAN Init;
+	BOOLEAN Config;
+	BOOLEAN EsdRecovery;
+	BOOLEAN Power;
+} TCM_STATE;
+
+#pragma pack(push)
+#pragma pack(1)
+typedef struct _TCM_CUSTOMER_CONFIG_ID
+{
+	UINT8 Key : 4;
+	UINT8 Maker : 4;
+	UINT8 Inch0 : 4;
+	UINT8 Supplier : 4;
+	UINT8 Panel : 4;
+	UINT8 Inch1 : 4;
+	UINT8 Version : 7;
+	UINT8 Release : 1;
+	UINT8 Reserved[12];
+} TCM_CUSTOMER_CONFIG_ID;
+
+typedef struct _TCM_ID_INFO
+{
+	UINT8 Version;
+	UINT8 Mode;
+	UINT8 PartNumber[16];
+	UINT32 BuildId;
+	UINT16 MaxWriteSize;
+} TCM_ID_INFO;
+
+typedef struct _TCM_APP_INFO
+{
+	UINT16 PacketVersion;
+	UINT16 Status;
+	UINT16 StaticConfigSize;
+	UINT16 DynamicConfigSize;
+	UINT16 AppConfigStartWriteBlock;
+	UINT16 AppConfigSize;
+	UINT16 MaxTouchReportConfigSize;
+	UINT16 MaxTouchReportPayloadSize;
+	TCM_CUSTOMER_CONFIG_ID CustomerConfigID;
+	UINT16 MaxX;
+	UINT16 MaxY;
+	UINT16 MaxObjects;
+	UINT16 NumOfButtons;
+	UINT16 NumOfImageRows;
+	UINT16 NumOfImageCols;
+	UINT16 HasHybridData;
+	UINT16 NumOfForceElecs;
+} TCM_APP_INFO;
+
+typedef struct _TCM_BOOT_INFO
+{
+	UINT8 PacketVersion;
+	UINT8 Status;
+	UINT16 ASICID;
+	UINT8 WriteBlockSizeWords;
+	UINT16 ErasePageSizeWords;
+	UINT16 MaxWritePayloadSize;
+	UINT8 LastResetReason;
+	UINT16 PcAtTimeOfLastReset;
+	UINT16 BootConfigStartBlock;
+	UINT16 BootConfigSizeBlocks;
+	UINT32 DisplayConfigStartBlock;
+	UINT16 DisplayConfigLengthBlocks;
+	UINT32 BackupDisplayConfigStartBlock;
+	UINT16 BackupDisplayConfigLengthBlocks;
+	UINT16 CustomOtpStartBlock;
+	UINT16 CustomOtpLengthBlocks;
+} TCM_BOOT_INFO;
+
+typedef struct _TCM_ROMBOOT_INFO
+{
+	UINT8 PacketVersion;
+	UINT8 Status;
+	UINT16 ASICID;
+	UINT8 WriteBlockSizeWords;
+	UINT16 MaxWritePayloadSize;
+	UINT8 LastResetReason;
+	UINT16 PcAtTimeOfLastReset;
+} TCM_ROMBOOT_INFO;
+
+typedef struct _TCM_PRODUCT_INFO
+{
+	UINT8 ProductID[6];
+	UINT8 ChipVersion;
+	UINT8 FPCVersion;
+	UINT8 SensorVersion;
+	UINT8 InspectChannel;
+	UINT8 InspectDate[3];
+	UINT8 InspectTime[3];
+} TCM_PRODUCT_INFO;
+
+#pragma pack(pop)
+
+typedef struct _TCM_BUFFER
+{
+	UINT8 Buffer[MESSAGE_BUFFER_SIZE];
+	ULONG DataLength;
+} TCM_BUFFER;
+
+typedef struct _TCM_SIGNAL_OBJ
+{
+	KEVENT Event;
+} TCM_SIGNAL_OBJ;
+
+typedef struct _TCM_CONTROLLER_CONTEXT
+{
+	WDFDEVICE FxDevice;
+	WDFWAITLOCK ControllerLock;
+	TCM_SIGNAL_OBJ *ResponseSignal;
+
+	DEVICE_POWER_STATE DevicePowerState;
+	UINT8 DeviceAddr;
+
+	TOUCH_SCREEN_SETTINGS TouchSettings;
+	BYTE MaxFingers;
+	BOOLEAN GesturesEnabled;
+	UINT32 ChunkSize;
+
+	TCM_STATE ControllerState;
+	TCM_ID_INFO IDInfo;
+	TCM_APP_INFO AppInfo;
+
+	INT8 CommandStatus;
+	UINT8 CurrentCommand;
+	UINT8 CurrentResponse;
+	UINT8 ReportCode;
+	UINT8 ResponseCode;
+	BOOLEAN ReportReady;
+
+	TCM_BUFFER ResponseData;
+	TCM_BUFFER ConfigData;
+	ULONG ISRCount;
+} TCM_CONTROLLER_CONTEXT;
+
+typedef struct _TCM_MSG_HEADER
+{
+	UINT8 Marker;
+	UINT8 Code;
+	UINT16 Length;
+} TCM_MSG_HEADER;
+
+static inline unsigned int ceil_div(unsigned int dividend, unsigned divisor)
+{
+	return (dividend + divisor - 1) / divisor;
+}
+
+#define MAX(a, b) a >= b ? a : b
+
+#define MIN(a, b) a <= b ? a : b
+
+NTSTATUS
+TcmServiceInterrupts(
+	IN TCM_CONTROLLER_CONTEXT* ControllerContext,
+	IN SPB_CONTEXT* SpbContext,
+	IN PREPORT_CONTEXT ReportContext
+);
+
+NTSTATUS
+TcmReadMessage(
+	IN TCM_CONTROLLER_CONTEXT* ControllerContext,
+	IN SPB_CONTEXT* SpbContext,
+	IN PREPORT_CONTEXT ReportContext
+);
+
+NTSTATUS
+TcmWriteMessage(
+	IN TCM_CONTROLLER_CONTEXT* ControllerContext,
+	IN SPB_CONTEXT* SpbContext,
+	IN UINT8 Command,
+	_In_reads_bytes_(PayloadLength) PVOID Payload,
+	IN ULONG PayloadLength,
+	IN UINT8* ResponseBuffer,
+	IN ULONG* ResponseLength
+);
+
+NTSTATUS
+TcmDispatchReport(
+	IN TCM_CONTROLLER_CONTEXT* ControllerContext,
+	IN PREPORT_CONTEXT ReportContext,
+	IN TCM_MSG_HEADER* MessageHeader,
+	_In_reads_bytes_(PayloadLength) PVOID Payload,
+	IN ULONG PayloadLength
+);
+
+NTSTATUS
+TcmDispatchResponse(
+	IN TCM_CONTROLLER_CONTEXT* ControllerContext,
+	IN PREPORT_CONTEXT ReportContext,
+	IN TCM_MSG_HEADER* MessageHeader,
+	_In_reads_bytes_(PayloadLength) PVOID Payload,
+	IN ULONG PayloadLength
+);
+
+NTSTATUS
+TcmParseSingleByte(
+	_In_reads_bytes_(PayloadLength) PVOID Payload,
+	IN UINT32 PayloadLength,
+	IN UINT32 BitsOffset,
+	IN UINT32 BitsToRead,
+	IN UINT32* OutputData
+);
+
+NTSTATUS
+TcmSetReportConfig(
+	IN TCM_CONTROLLER_CONTEXT* ControllerContext,
+	IN SPB_CONTEXT* SpbContext
+);
+
+NTSTATUS
+TcmGetReportConfig(
+	IN TCM_CONTROLLER_CONTEXT* ControllerContext,
+	IN SPB_CONTEXT* SpbContext
+);
+
+NTSTATUS
+TcmSwitchMode(
+	IN TCM_CONTROLLER_CONTEXT* ControllerContext,
+	IN SPB_CONTEXT* SpbContext,
+	IN UINT8 Mode
+);
+
+NTSTATUS
+TcmGetIcInfo(
+	IN TCM_CONTROLLER_CONTEXT* ControllerContext,
+	IN SPB_CONTEXT* SpbContext
+);
+
+NTSTATUS
+TcmGetAppInfo(
+	IN TCM_CONTROLLER_CONTEXT* ControllerContext,
+	IN SPB_CONTEXT* SpbContext
+);
+
+
+#endif

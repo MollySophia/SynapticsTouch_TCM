@@ -21,9 +21,10 @@
 
 --*/
 
-#include <rmi4\rmiinternal.h>
+#include <tcm/touch_tcm.h>
 #include <registry.tmh>
 #include <internal.h>
+#include <rmi4/rmiinternal.h>
 
 #define TOUCH_REG_KEY                    L"\\Registry\\Machine\\SYSTEM\\TOUCH"
 #define TOUCH_SCREEN_SETTINGS_SUB_KEY    L"Settings"
@@ -1790,17 +1791,18 @@ TchRegistryGetControllerSettings(
 
 --*/
 {
-    RMI4_CONTROLLER_CONTEXT* controller;
+    TCM_CONTROLLER_CONTEXT* controller;
     NTSTATUS status;
 
     UNREFERENCED_PARAMETER(FxDevice);
 
-    controller = (RMI4_CONTROLLER_CONTEXT*)ControllerContext;
-
+    controller = (TCM_CONTROLLER_CONTEXT*)ControllerContext;
+    /*
     RtlCopyMemory(
         &controller->Config,
         &gDefaultConfiguration,
         sizeof(RMI4_CONFIGURATION));
+        */
 
     status = STATUS_SUCCESS;
 

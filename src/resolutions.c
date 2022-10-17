@@ -37,18 +37,18 @@
 
 TOUCH_SCREEN_PROPERTIES gDefaultProperties =
 {
-    0x0,
-    0x0,
-    0x0,
-    TOUCH_DEFAULT_RESOLUTION_X,
-    TOUCH_DEFAULT_RESOLUTION_Y,
-    0x0,
-    TOUCH_DEFAULT_RESOLUTION_X,
-    TOUCH_DEFAULT_RESOLUTION_Y,
+    0x0, // swap axis
+    0x0, // invert x
+    0x0, // invert y
+    TOUCH_DEVICE_RESOLUTION_X, // TouchPhysicalWidth
+    TOUCH_DEVICE_RESOLUTION_Y, // TouchPhysicalHeight
+    0x0, // touch button height
     0x0,
     0x0,
     0x0,
     0x0,
+    TOUCH_DEFAULT_RESOLUTION_X, // DisplayPhysicalWidth
+    TOUCH_DEFAULT_RESOLUTION_X, // DisplayPhysicalHeight
     TOUCH_DEFAULT_RESOLUTION_X,
     TOUCH_DEFAULT_RESOLUTION_Y,
     0x0,

@@ -46,6 +46,13 @@ SpbReadDataSynchronously(
     _In_ ULONG Length
     );
 
+NTSTATUS
+SpbReadContinuedData(
+    _In_ SPB_CONTEXT* SpbContext,
+    _In_reads_bytes_(Length) PVOID Data,
+    _In_ ULONG Length
+);
+
 VOID
 SpbTargetDeinitialize(
     IN WDFDEVICE FxDevice,

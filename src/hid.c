@@ -23,7 +23,7 @@
 #include <Cross Platform Shim\compat.h>
 #include <internal.h>
 #include <controller.h>
-#include <rmi4\rmiinternal.h>
+#include <tcm/touch_tcm.h>
 #include <hid.h>
 #include <hid.tmh>
 
@@ -288,7 +288,7 @@ Return Value:
 	//
 	if (devContext->ServiceInterruptsAfterD0Entry == TRUE)
 	{
-		RmiServiceInterrupts(
+		TcmServiceInterrupts(
 			devContext->TouchContext,
 			&devContext->I2CContext,
 			&devContext->ReportContext);
@@ -390,12 +390,12 @@ TchGenerateHidReportDescriptor(
 )
 {
 	PDEVICE_EXTENSION devContext;
-	RMI4_CONTROLLER_CONTEXT* touchContext;
+	// TCM_CONTROLLER_CONTEXT* touchContext;
 	NTSTATUS status;
 
 	devContext = GetDeviceContext(Device);
 
-	touchContext = (RMI4_CONTROLLER_CONTEXT*)devContext->TouchContext;
+	// touchContext = (TCM_CONTROLLER_CONTEXT*)devContext->TouchContext;
 
 	PUCHAR hidReportDescBuffer = (PUCHAR)ExAllocatePoolWithTag(
 		NonPagedPool,
@@ -905,9 +905,9 @@ Return Value:
 		capsReport->MaximumContactPoints = PTP_MAX_CONTACT_POINTS;
 		capsReport->ReportID = REPORTID_DEVICE_CAPS;
 
-		if (devContext->TouchContext != NULL && ((RMI4_CONTROLLER_CONTEXT*)devContext->TouchContext)->MaxFingers != 0)
+		if (devContext->TouchContext != NULL && ((TCM_CONTROLLER_CONTEXT*)devContext->TouchContext)->MaxFingers != 0)
 		{
-			capsReport->MaximumContactPoints = ((RMI4_CONTROLLER_CONTEXT*)devContext->TouchContext)->MaxFingers;
+			capsReport->MaximumContactPoints = ((TCM_CONTROLLER_CONTEXT*)devContext->TouchContext)->MaxFingers;
 		}
 
 		Trace(

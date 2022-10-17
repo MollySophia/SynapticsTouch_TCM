@@ -655,15 +655,15 @@ ReportObjects(
 )
 {
 	if (ReportContext->Props.TouchHardwareLacksContinuousReporting)
-      {
-            return ReportObjectsContinuous(
-		      ReportContext,
-		      data);
-      }
-      else
-      {
-            return ReportObjectsInternal(
-		      ReportContext,
-		      data);
-      }
+	{
+		return ReportObjectsContinuous(
+			ReportContext,
+			data);
+	}
+	else
+	{
+		return ReportObjectsInternal(
+			ReportContext,
+			data);
+	}
 }

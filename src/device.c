@@ -29,7 +29,7 @@
 #include <gpio.h>
 #include <device.h>
 #include <report.h>
-#include <rmi4/rmiinternal.h>
+#include <tcm/touch_tcm.h>
 #include <touch_power/touch_power.h>
 #include <device.tmh>
 
@@ -69,12 +69,12 @@ OnInterruptIsr(
     NTSTATUS status;
 
     UNREFERENCED_PARAMETER(MessageID);
-
+/*
     Trace(
         TRACE_LEVEL_ERROR,
         TRACE_REPORTING,
         "OnInterruptIsr - Entry");
-
+    */
     status = STATUS_SUCCESS;
     devContext = GetDeviceContext(WdfInterruptGetDevice(Interrupt));
 
@@ -95,7 +95,7 @@ OnInterruptIsr(
     //
     // Service touch interrupts.
     //
-    status = RmiServiceInterrupts(
+    status = TcmServiceInterrupts(
         devContext->TouchContext,
         &devContext->I2CContext,
         &devContext->ReportContext);
@@ -381,25 +381,25 @@ OnPrepareHardware(
 
         Trace(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "Starting bring up sequence for the controller");
 
-        Trace(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "Setting reset gpio pin to low");
+        //Trace(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "Setting reset gpio pin to low");
 
         value = 0;
-        SetGPIO(devContext->ResetGpio, &value);
+        //SetGPIO(devContext->ResetGpio, &value);
 
-        Trace(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "Waiting...");
+        //Trace(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "Waiting...");
 
         delay.QuadPart = -10 * TOUCH_POWER_RAIL_STABLE_TIME;
         KeDelayExecutionThread(KernelMode, TRUE, &delay);
 
-        Trace(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "Setting reset gpio pin to high");
+        //Trace(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "Setting reset gpio pin to high");
 
         value = 1;
-        SetGPIO(devContext->ResetGpio, &value);
+        //SetGPIO(devContext->ResetGpio, &value);
 
-        Trace(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "Waiting...");
+        //Trace(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "Waiting...");
 
-        delay.QuadPart = -10 * TOUCH_DELAY_TO_COMMUNICATE;
-        KeDelayExecutionThread(KernelMode, TRUE, &delay);
+        //delay.QuadPart = -10 * TOUCH_DELAY_TO_COMMUNICATE;
+        //KeDelayExecutionThread(KernelMode, TRUE, &delay);
 
         Trace(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "Done");
     }

@@ -2,6 +2,7 @@
 // Copyright (c) Bingxing Wang. All Rights Reserved. 
 
 #pragma once
+#include <evntrace.h>
 
 //
 // Control GUID:

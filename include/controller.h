@@ -16,7 +16,7 @@
 // Memory tags
 //
 #define TOUCH_POOL_TAG                  (ULONG)'cuoT'
-#define TOUCH_POOL_TAG_F12              (ULONG)'21oT'
+#define TOUCH_POOL_TAG_MSG              (ULONG)'gsmT'
 #define TOUCH_POWER_POOL_TAG            (ULONG)'PuoT'
 
 //

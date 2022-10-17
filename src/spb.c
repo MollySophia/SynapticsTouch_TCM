@@ -331,6 +331,126 @@ exit:
     return status;
 }
 
+NTSTATUS
+SpbReadContinuedData(
+    IN SPB_CONTEXT* SpbContext,
+    _In_reads_bytes_(Length) PVOID Data,
+    IN ULONG Length
+)
+/*++
+
+  Routine Description:
+
+    This helper routine abstracts creating and sending an I/O
+    request (I2C Read) to the Spb I/O target.
+
+  Arguments:
+
+    SpbContext - Pointer to the current device context
+    Address    - The I2C register address to read from
+    Data       - A buffer to receive the data at at the above address
+    Length     - The amount of data to be read from the above address
+
+  Return Value:
+
+    NTSTATUS Status indicating success or failure
+
+--*/
+{
+    PUCHAR buffer;
+    WDFMEMORY memory;
+    WDF_MEMORY_DESCRIPTOR memoryDescriptor;
+    NTSTATUS status;
+    ULONG_PTR bytesRead;
+
+    WdfWaitLockAcquire(SpbContext->SpbLock, NULL);
+
+    memory = NULL;
+    status = STATUS_INVALID_PARAMETER;
+    bytesRead = 0;
+
+    if (Length > DEFAULT_SPB_BUFFER_SIZE)
+    {
+        status = WdfMemoryCreate(
+            WDF_NO_OBJECT_ATTRIBUTES,
+            NonPagedPool,
+            TOUCH_POOL_TAG,
+            Length,
+            &memory,
+            &buffer);
+
+        if (!NT_SUCCESS(status))
+        {
+            Trace(
+                TRACE_LEVEL_ERROR,
+                TRACE_SPB,
+                "Error allocating memory for Spb read - 0x%08lX",
+                status);
+            goto exit;
+        }
+
+        WDF_MEMORY_DESCRIPTOR_INIT_HANDLE(
+            &memoryDescriptor,
+            memory,
+            NULL);
+    }
+    else
+    {
+        buffer = (PUCHAR)WdfMemoryGetBuffer(SpbContext->ReadMemory, NULL);
+
+        WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(
+            &memoryDescriptor,
+            (PVOID)buffer,
+            Length);
+    }
+
+
+    status = WdfIoTargetSendReadSynchronously(
+        SpbContext->SpbIoTarget,
+        NULL,
+        &memoryDescriptor,
+        NULL,
+        NULL,
+        &bytesRead);
+
+    if (!NT_SUCCESS(status) ||
+        bytesRead != Length)
+    {
+        Trace(
+            TRACE_LEVEL_ERROR,
+            TRACE_SPB,
+            "Error reading from Spb - 0x%08lX",
+            status);
+        goto exit;
+    }
+
+#if I2C_VERBOSE_LOGGING
+    DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "I2CREAD: LENGTH=%d", Length);
+    for (ULONG j = 0; j < Length; j++)
+    {
+        UCHAR byte = *(buffer + j);
+        DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, " %02hhX", byte);
+    }
+    DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "\n");
+#endif
+
+    //
+    // Copy back to the caller's buffer
+    //
+    RtlCopyMemory(Data, buffer, Length);
+
+exit:
+    if (NULL != memory)
+    {
+        WdfObjectDelete(memory);
+    }
+
+    WdfWaitLockRelease(SpbContext->SpbLock);
+
+    return status;
+}
+
+
 VOID
 SpbTargetDeinitialize(
     IN WDFDEVICE FxDevice,
